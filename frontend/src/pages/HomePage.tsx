@@ -21,8 +21,8 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="bg-gradient-to-br from-blue-950 via-blue-800 to-blue-900 text-white py-24 px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-          Bienvenue sur <span className="text-blue-300">TCG_App</span>
+        <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight uppercase">
+          Chasseur <span className="text-yellow-400">de Jeux</span>
         </h1>
         <p className="text-lg text-blue-100 mb-8 max-w-xl mx-auto">
           Votre boutique spécialisée en jeux de cartes à collectionner, jeux de société et tournois locaux.
