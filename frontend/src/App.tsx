@@ -6,7 +6,7 @@ import TournamentsPage from './pages/TournamentsPage'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-blue-50">
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />

@@ -12,8 +12,8 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
-      <div className="h-40 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-blue-100 hover:shadow-blue-200 hover:shadow-lg transition-shadow">
+      <div className="h-40 bg-blue-50 flex items-center justify-center text-blue-300 text-sm">
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -25,16 +25,16 @@ export default function ProductCard({ product }: Props) {
         )}
       </div>
       <div className="p-4 flex flex-col flex-1">
-        <span className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
+        <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-1">
           {CATEGORY_LABELS[product.category] ?? product.category}
         </span>
-        <h3 className="font-semibold text-gray-800 mb-1">{product.name}</h3>
+        <h3 className="font-semibold text-blue-900 mb-1">{product.name}</h3>
         {product.description && (
-          <p className="text-sm text-gray-500 mb-2 line-clamp-2">{product.description}</p>
+          <p className="text-sm text-blue-500 mb-2 line-clamp-2">{product.description}</p>
         )}
         <div className="mt-auto flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900">{product.price.toFixed(2)} €</span>
-          <span className="text-xs text-gray-500">Stock : {product.stock}</span>
+          <span className="text-lg font-bold text-blue-700">{product.price.toFixed(2)} €</span>
+          <span className="text-xs text-blue-400">Stock : {product.stock}</span>
         </div>
       </div>
     </div>

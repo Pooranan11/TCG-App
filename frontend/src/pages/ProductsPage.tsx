@@ -23,18 +23,17 @@ export default function ProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Catalogue</h1>
+      <h1 className="text-3xl font-bold text-blue-900 mb-6">Catalogue</h1>
 
-      {/* Category filters */}
       <div className="flex gap-3 flex-wrap mb-8">
         {CATEGORIES.map(({ value, label }) => (
           <button
             key={String(value)}
             onClick={() => setCategory(value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
               selectedCategory === value
                 ? 'bg-blue-600 text-white border-blue-600'
-                : 'border-gray-300 text-gray-600 hover:bg-gray-100'
+                : 'border-blue-200 text-blue-600 hover:bg-blue-100'
             }`}
           >
             {label}
@@ -42,7 +41,7 @@ export default function ProductsPage() {
         ))}
       </div>
 
-      {loading && <p className="text-gray-500">Chargement…</p>}
+      {loading && <p className="text-blue-400">Chargement…</p>}
       {error && <p className="text-red-500">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -52,7 +51,7 @@ export default function ProductsPage() {
       </div>
 
       {!loading && filtered.length === 0 && (
-        <p className="text-gray-400 text-center py-12">Aucun produit dans cette catégorie.</p>
+        <p className="text-blue-300 text-center py-12">Aucun produit dans cette catégorie.</p>
       )}
     </div>
   )
