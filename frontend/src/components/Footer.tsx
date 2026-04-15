@@ -4,72 +4,70 @@ import Logo from './Logo'
 export default function Footer() {
   return (
     <footer className="bg-navy-dark">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 py-12">
-          {/* Brand */}
-          <div>
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8 sm:gap-10 lg:gap-16 py-10 sm:py-12">
+
+          {/* Brand — full width on mobile */}
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <Logo size={36} />
+              <Logo size={40} />
               <div className="flex flex-col leading-none">
-                <span className="font-condensed font-black text-lg uppercase tracking-wide text-white">Chasseur</span>
-                <span className="font-condensed font-semibold text-[0.6rem] uppercase tracking-[0.12em] text-yellow">de Jeux</span>
+                <span className="font-condensed font-black text-xl uppercase tracking-wide text-white">Chasseur</span>
+                <span className="font-condensed font-semibold text-[0.65rem] uppercase tracking-[0.12em] text-yellow">de Jeux</span>
               </div>
             </Link>
-            <p className="text-[0.82rem] text-white/40 leading-relaxed max-w-[220px]">
-              Boutique specialisee en jeux de cartes a collectionner, jeux de societe et tournois locaux.
+            <p className="text-[0.82rem] text-white/40 leading-relaxed max-w-[260px]">
+              Votre boutique TCG &amp; jeux de societe. Passionnes, pour les passionnes depuis 2018.
             </p>
           </div>
 
-          {/* Navigation */}
+          {/* Boutique */}
           <div>
-            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4">
-              Navigation
+            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4 sm:mb-5">
+              Boutique
             </h4>
-            <ul className="flex flex-col gap-2">
-              {[['/', 'Accueil'], ['/products', 'Catalogue'], ['/tournaments', 'Tournois']].map(([to, label]) => (
-                <li key={to}>
-                  <Link to={to} className="text-[0.8rem] text-white/45 hover:text-white transition-colors">
-                    {label}
-                  </Link>
+            <ul className="flex flex-col gap-2.5">
+              {[['Cartes TCG', '/products'], ['Jeux de societe', '/products'], ['Accessoires', '/products'], ['Nouveautes', '/products']].map(([label, to]) => (
+                <li key={label}>
+                  <Link to={to} className="text-[0.8rem] text-white/45 hover:text-white transition-colors">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Categories */}
+          {/* Tournois */}
           <div>
-            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4">
-              Categories
+            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4 sm:mb-5">
+              Tournois
             </h4>
-            <ul className="flex flex-col gap-2">
-              {['Jeux de cartes TCG', 'Jeux de societe', 'Accessoires'].map((label) => (
+            <ul className="flex flex-col gap-2.5">
+              {[['Agenda', '/tournaments'], ['Resultats', '/tournaments'], ['Classements', '/tournaments'], ["S'inscrire", '/tournaments']].map(([label, to]) => (
                 <li key={label}>
-                  <Link to="/products" className="text-[0.8rem] text-white/45 hover:text-white transition-colors">
-                    {label}
-                  </Link>
+                  <Link to={to} className="text-[0.8rem] text-white/45 hover:text-white transition-colors">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Info */}
+          {/* Infos */}
           <div>
-            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4">
-              Informations
+            <h4 className="font-condensed font-black text-[0.72rem] tracking-[0.18em] uppercase text-yellow mb-4 sm:mb-5">
+              Infos
             </h4>
-            <ul className="flex flex-col gap-2">
-              {['A propos', 'Contact', 'Mentions legales'].map((label) => (
+            <ul className="flex flex-col gap-2.5">
+              {['Horaires & acces', 'Contact', 'Instagram', 'CGV'].map((label) => (
                 <li key={label}>
-                  <span className="text-[0.8rem] text-white/45 cursor-not-allowed">{label}</span>
+                  <span className="text-[0.8rem] text-white/45 cursor-default">{label}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-white/[0.07] py-5 flex items-center justify-between text-[0.7rem] text-white/30">
-          <span>2026 Chasseur de Jeux. Tous droits reserves.</span>
-          <span>TCG · Jeux de societe · Tournois</span>
+        {/* Bottom bar */}
+        <div className="border-t border-white/[0.07] py-4 sm:py-5 flex flex-col sm:flex-row items-center sm:justify-between gap-2 text-[0.7rem] text-white/30">
+          <span>© 2025 Chasseur de Jeux</span>
+          <span>Fait avec <span className="text-yellow">★</span> pour les joueurs</span>
         </div>
       </div>
     </footer>
