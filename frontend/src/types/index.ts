@@ -24,3 +24,13 @@ export interface Tournament {
   status: TournamentStatus
   created_at: string
 }
+
+export type UserRole = 'USER' | 'ADMIN'
+
+export interface User {
+  id: number
+  email: string
+  username: string
+  role: UserRole
+  created_at: string
+}

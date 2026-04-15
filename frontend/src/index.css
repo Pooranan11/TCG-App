@@ -11,3 +11,15 @@
     color: #1A2B5E;
   }
 }
+
+@layer components {
+  .btn-primary {
+    @apply font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy px-5 py-2.5 hover:bg-yellow-light transition-colors disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply font-condensed font-bold text-[0.85rem] tracking-[0.12em] uppercase border border-white/20 text-white/60 px-5 py-2.5 hover:border-white/50 hover:text-white transition-colors;
+  }
+  .field {
+    @apply w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors;
+  }
+}

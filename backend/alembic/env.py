@@ -9,7 +9,7 @@ from alembic import context
 
 from app.core.config import settings
 from app.core.database import Base
-from app.models import product, tournament  # noqa: F401 — register models
+from app.models import product, tournament, user  # noqa: F401 — register models
 
 config = context.config
 

@@ -9,16 +9,15 @@ from sqlalchemy.exc import OperationalError
 from app.core.config import settings
 from app.core.database import engine
 from app.core.redis import redis_client
-from app.routers import products, tournaments
+from app.routers import products, tournaments, auth
 
 logger = logging.getLogger("uvicorn.error")
 
-app = FastAPI(title="TCG App API", version="1.0.0")
+app = FastAPI(title="Chasseur de Jeux API", version="1.0.0")
 
 
 @app.on_event("startup")
 async def wait_for_db() -> None:
-    """Retry DB connection until PostgreSQL is ready (useful in dev when all services start together)."""
     for attempt in range(1, 21):
         try:
             async with engine.connect() as conn:
@@ -30,6 +29,7 @@ async def wait_for_db() -> None:
             await asyncio.sleep(2)
     logger.error("Could not connect to the database after 20 attempts.")
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -38,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(tournaments.router)
 

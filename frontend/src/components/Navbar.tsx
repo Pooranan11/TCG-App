@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import Logo from './Logo'
+import { useAuthStore } from '../store/authStore'
 
 const LINKS = [
   { to: '/', label: 'Accueil', end: true },
@@ -11,6 +12,14 @@ const LINKS = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuthStore()
+
+  const handleLogout = () => {
+    logout()
+    setOpen(false)
+    navigate('/')
+  }
 
   const desktopLink = ({ isActive }: { isActive: boolean }) =>
     `font-condensed font-bold text-sm tracking-widest uppercase h-16 flex items-center px-5 border-b-[3px] transition-colors duration-200 ${
@@ -38,6 +47,52 @@ export default function Navbar() {
           ))}
         </ul>
 
+        {/* Auth area */}
+        <div className="hidden md:flex items-center gap-3">
+          {user ? (
+            <>
+              {user.role === 'ADMIN' && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase px-3 py-1.5 border rounded transition-colors ${
+                      isActive
+                        ? 'bg-yellow text-navy border-yellow'
+                        : 'text-yellow border-yellow/50 hover:border-yellow hover:bg-yellow/10'
+                    }`
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
+              <span className="font-condensed font-bold text-[0.72rem] tracking-[0.12em] uppercase text-white/50">
+                {user.username}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/40 hover:text-white transition-colors"
+              >
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/register"
+                className="font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase px-4 py-1.5 text-white/50 hover:text-white transition-colors"
+              >
+                S'inscrire
+              </Link>
+              <Link
+                to="/login"
+                className="font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase px-4 py-1.5 border border-white/20 text-white/60 hover:border-yellow hover:text-yellow transition-colors rounded"
+              >
+                Connexion
+              </Link>
+            </>
+          )}
+        </div>
+
         {/* Hamburger */}
         <button
           className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5"
@@ -60,7 +115,7 @@ export default function Navbar() {
                 <Link
                   to={to}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 last:border-0 transition-colors ${
+                  className={`flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 transition-colors ${
                     isActive ? 'text-yellow' : 'text-white/65 hover:text-white'
                   }`}
                 >
@@ -70,6 +125,39 @@ export default function Navbar() {
               </li>
             )
           })}
+          {user ? (
+            <>
+              {user.role === 'ADMIN' && (
+                <li>
+                  <Link to="/admin" onClick={() => setOpen(false)}
+                    className="flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 text-yellow transition-colors">
+                    Admin
+                  </Link>
+                </li>
+              )}
+              <li>
+                <button onClick={handleLogout}
+                  className="w-full text-left font-condensed font-bold text-sm tracking-widest uppercase py-4 text-white/40 hover:text-white transition-colors">
+                  Déconnexion ({user.username})
+                </button>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link to="/register" onClick={() => setOpen(false)}
+                  className="flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 text-white/65 hover:text-white transition-colors">
+                  S'inscrire
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" onClick={() => setOpen(false)}
+                  className="flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 text-white/65 hover:text-white transition-colors">
+                  Connexion
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </div>
     </nav>
