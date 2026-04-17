@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import Logo from './Logo'
 import { useAuthStore } from '../store/authStore'
+import { useCartStore } from '../store/cartStore'
 
 const LINKS = [
   { to: '/', label: 'Accueil', end: true },
@@ -14,6 +15,7 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const cartCount = useCartStore((s) => s.count)()
 
   const handleLogout = () => {
     logout()
@@ -47,11 +49,24 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Auth area */}
+        {/* Auth area + Cart */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Cart icon */}
+          <Link to="/cart" className="relative flex items-center justify-center w-9 h-9 text-white/60 hover:text-yellow transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-yellow text-navy font-condensed font-black text-[0.6rem] w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </Link>
+
           {user ? (
             <>
-              {user.role === 'ADMIN' && (
+              {(user.role === 'ADMIN' || user.role === 'VENDOR') && (
                 <NavLink
                   to="/admin"
                   className={({ isActive }) =>
@@ -62,9 +77,15 @@ export default function Navbar() {
                     }`
                   }
                 >
-                  Admin
+                  {user.role === 'ADMIN' ? 'Admin' : 'Mes produits'}
                 </NavLink>
               )}
+              <Link
+                to="/orders"
+                className="font-condensed font-bold text-[0.72rem] tracking-[0.12em] uppercase text-white/50 hover:text-white transition-colors"
+              >
+                Commandes
+              </Link>
               <span className="font-condensed font-bold text-[0.72rem] tracking-[0.12em] uppercase text-white/50">
                 {user.username}
               </span>
@@ -125,16 +146,33 @@ export default function Navbar() {
               </li>
             )
           })}
+          <li>
+            <Link to="/cart" onClick={() => setOpen(false)}
+              className="flex items-center justify-between font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 text-white/65 hover:text-white transition-colors">
+              Panier
+              {cartCount > 0 && (
+                <span className="bg-yellow text-navy font-condensed font-black text-[0.6rem] px-1.5 py-0.5 rounded-full leading-none">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </li>
           {user ? (
             <>
-              {user.role === 'ADMIN' && (
+              {(user.role === 'ADMIN' || user.role === 'VENDOR') && (
                 <li>
                   <Link to="/admin" onClick={() => setOpen(false)}
                     className="flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 text-yellow transition-colors">
-                    Admin
+                    {user.role === 'ADMIN' ? 'Admin' : 'Mes produits'}
                   </Link>
                 </li>
               )}
+              <li>
+                <Link to="/orders" onClick={() => setOpen(false)}
+                  className="flex items-center font-condensed font-bold text-sm tracking-widest uppercase py-4 border-b border-white/5 text-white/65 hover:text-white transition-colors">
+                  Mes commandes
+                </Link>
+              </li>
               <li>
                 <button onClick={handleLogout}
                   className="w-full text-left font-condensed font-bold text-sm tracking-widest uppercase py-4 text-white/40 hover:text-white transition-colors">

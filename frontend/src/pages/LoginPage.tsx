@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (user) navigate(user.role === 'ADMIN' ? '/admin' : '/')
+    if (user) navigate(user.role === 'USER' ? '/' : '/admin')
   }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {

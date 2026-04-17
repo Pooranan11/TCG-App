@@ -159,6 +159,7 @@ export default function AdminPage() {
   const { user } = useAuthStore()
   const { products, fetchProducts } = useProductStore()
   const { tournaments, fetchTournaments } = useTournamentStore()
+  const isVendor = user?.role === 'VENDOR'
 
   const [tab, setTab] = useState<Tab>('products')
   const [editingProduct, setEditingProduct] = useState<Product | null | 'new'>(null)
@@ -226,14 +227,19 @@ export default function AdminPage() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6 flex items-center justify-between">
           <div>
             <p className="font-condensed font-bold text-[0.7rem] tracking-[0.2em] uppercase text-yellow mb-0.5">
-              Administration
+              {isVendor ? 'Vendeur' : 'Administration'}
             </p>
             <h1 className="font-condensed font-black text-2xl uppercase tracking-wide text-white">
-              Dashboard
+              {isVendor ? 'Mes produits' : 'Dashboard'}
             </h1>
           </div>
           <p className="font-condensed text-sm text-white/40">
             Connecté en tant que <span className="text-white">{user?.username}</span>
+            {user?.role && (
+              <span className="ml-2 font-condensed font-bold text-[0.6rem] tracking-[0.15em] uppercase px-1.5 py-0.5 rounded bg-yellow/20 text-yellow">
+                {user.role}
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -243,9 +249,11 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Produits', value: products.length },
-            { label: 'Tournois', value: tournaments.length },
-            { label: 'À venir', value: tournaments.filter(t => t.status === 'UPCOMING').length },
-            { label: 'En cours', value: tournaments.filter(t => t.status === 'ONGOING').length },
+            ...(!isVendor ? [
+              { label: 'Tournois', value: tournaments.length },
+              { label: 'À venir', value: tournaments.filter(t => t.status === 'UPCOMING').length },
+              { label: 'En cours', value: tournaments.filter(t => t.status === 'ONGOING').length },
+            ] : []),
           ].map(({ label, value }) => (
             <div key={label} className="bg-navy-light border border-white/10 rounded-lg p-4">
               <p className="font-condensed font-bold text-[0.65rem] tracking-[0.15em] uppercase text-white/40 mb-1">{label}</p>
@@ -254,20 +262,22 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-white/10">
-          {(['products', 'tournaments'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`font-condensed font-bold text-sm tracking-widest uppercase px-6 py-3 border-b-[3px] -mb-px transition-colors ${
-                tab === t ? 'text-yellow border-yellow' : 'text-white/40 border-transparent hover:text-white'
-              }`}
-            >
-              {t === 'products' ? 'Produits' : 'Tournois'}
-            </button>
-          ))}
-        </div>
+        {/* Tabs — vendeur voit uniquement Produits */}
+        {!isVendor && (
+          <div className="flex gap-1 mb-6 border-b border-white/10">
+            {(['products', 'tournaments'] as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`font-condensed font-bold text-sm tracking-widest uppercase px-6 py-3 border-b-[3px] -mb-px transition-colors ${
+                  tab === t ? 'text-yellow border-yellow' : 'text-white/40 border-transparent hover:text-white'
+                }`}
+              >
+                {t === 'products' ? 'Produits' : 'Tournois'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && (
           <p className="text-red-400 text-sm mb-4">{error}</p>

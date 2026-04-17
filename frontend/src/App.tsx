@@ -5,10 +5,13 @@ import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import ProductsPage from './pages/ProductsPage'
+import ProductPage from './pages/ProductPage'
 import TournamentsPage from './pages/TournamentsPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import AdminPage from './pages/AdminPage'
+import CartPage from './pages/CartPage'
+import OrdersPage from './pages/OrdersPage'
 import { useAuthStore } from './store/authStore'
 
 export default function App() {
@@ -24,7 +27,7 @@ export default function App() {
 
       {/* Admin — protected, standalone layout */}
       <Route path="/admin" element={
-        <ProtectedRoute adminOnly>
+        <ProtectedRoute vendorOrAdmin>
           <AdminPage />
         </ProtectedRoute>
       } />
@@ -37,7 +40,14 @@ export default function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:id" element={<ProductPage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/orders" element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              } />
             </Routes>
           </main>
           <Footer />

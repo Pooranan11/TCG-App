@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import (
@@ -34,9 +35,14 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    existing = await db.execute(select(User).where(User.email == payload.email))
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email déjà utilisé")
+    existing = await db.execute(
+        select(User).where((User.email == payload.email) | (User.username == payload.username))
+    )
+    existing_user = existing.scalar_one_or_none()
+    if existing_user:
+        if existing_user.email == payload.email:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email déjà utilisé")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Nom d'utilisateur déjà pris")
 
     user = User(
         email=payload.email,
@@ -44,8 +50,12 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
         hashed_password=hash_password(payload.password),
     )
     db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    try:
+        await db.commit()
+        await db.refresh(user)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email ou nom d'utilisateur déjà utilisé")
     return user
 
 

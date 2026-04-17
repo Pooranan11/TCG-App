@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Product } from '../types'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -18,7 +19,7 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   return (
-    <div className="bg-white rounded-lg overflow-hidden border border-navy/10 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-navy/10 hover:border-yellow group">
+    <Link to={`/products/${product.id}`} className="bg-white rounded-lg overflow-hidden border border-navy/10 cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-navy/10 hover:border-yellow group">
       <div className={`aspect-[4/3] flex items-center justify-center relative ${CATEGORY_BG[product.category] ?? 'bg-light'}`}>
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
@@ -48,6 +49,6 @@ export default function ProductCard({ product }: Props) {
           <span className="text-[0.65rem] text-muted">Stock : {product.stock}</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

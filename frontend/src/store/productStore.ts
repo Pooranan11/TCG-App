@@ -8,6 +8,7 @@ interface ProductState {
   error: string | null
   selectedCategory: ProductCategory | null
   load: () => Promise<void>
+  fetchProducts: () => Promise<void>
   setCategory: (category: ProductCategory | null) => void
 }
 
@@ -18,6 +19,16 @@ export const useProductStore = create<ProductState>((set) => ({
   selectedCategory: null,
 
   load: async () => {
+    set({ loading: true, error: null })
+    try {
+      const products = await fetchProducts()
+      set({ products, loading: false })
+    } catch {
+      set({ error: 'Erreur lors du chargement des produits', loading: false })
+    }
+  },
+
+  fetchProducts: async () => {
     set({ loading: true, error: null })
     try {
       const products = await fetchProducts()

@@ -25,7 +25,7 @@ export interface Tournament {
   created_at: string
 }
 
-export type UserRole = 'USER' | 'ADMIN'
+export type UserRole = 'USER' | 'VENDOR' | 'ADMIN'
 
 export interface User {
   id: number
@@ -33,4 +33,21 @@ export interface User {
   username: string
   role: UserRole
   created_at: string
+}
+
+export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED'
+
+export interface OrderItem {
+  id: number
+  product_id: number | null
+  quantity: number
+  unit_price: number
+}
+
+export interface Order {
+  id: number
+  status: OrderStatus
+  total: number
+  created_at: string
+  items: OrderItem[]
 }

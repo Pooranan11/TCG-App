@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
 import { useTournamentStore } from '../store/tournamentStore'
 import type { Tournament } from '../types'
 
@@ -20,22 +22,24 @@ interface Props {
 
 export default function TournamentCard({ tournament }: Props) {
   const register = useTournamentStore((s) => s.register)
-  const [playerId, setPlayerId] = useState('')
+  const user = useAuthStore((s) => s.user)
   const [msg, setMsg] = useState('')
+  const [loading, setLoading] = useState(false)
   const isFull = tournament.registered_players >= tournament.max_players
   const spotsLeft = tournament.max_players - tournament.registered_players
   const fillPct = Math.round((tournament.registered_players / tournament.max_players) * 100)
 
   const handleRegister = async () => {
-    if (!playerId.trim()) {
-      setMsg('Veuillez entrer votre identifiant.')
-      return
-    }
+    setLoading(true)
+    setMsg('')
     try {
-      await register(tournament.id, playerId.trim())
+      await register(tournament.id)
       setMsg('Inscription confirmee !')
-    } catch {
-      setMsg("Erreur lors de l'inscription.")
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setMsg(detail ?? "Erreur lors de l'inscription.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -92,19 +96,22 @@ export default function TournamentCard({ tournament }: Props) {
 
         {tournament.status === 'UPCOMING' && !isFull ? (
           <div className="flex gap-2 flex-1 justify-end">
-            <input
-              type="text"
-              placeholder="ID joueur"
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
-              className="border border-navy/20 rounded px-3 py-1.5 text-[0.78rem] text-navy placeholder-muted/60 focus:outline-none focus:border-yellow w-28"
-            />
-            <button
-              onClick={handleRegister}
-              className="font-condensed font-black text-[0.72rem] tracking-[0.1em] uppercase bg-yellow text-navy px-4 py-1.5 hover:bg-yellow-light transition-colors"
-            >
-              S'inscrire
-            </button>
+            {user ? (
+              <button
+                onClick={handleRegister}
+                disabled={loading}
+                className="font-condensed font-black text-[0.72rem] tracking-[0.1em] uppercase bg-yellow text-navy px-4 py-1.5 hover:bg-yellow-light transition-colors disabled:opacity-60"
+              >
+                {loading ? '...' : "S'inscrire"}
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="font-condensed font-black text-[0.72rem] tracking-[0.1em] uppercase bg-yellow text-navy px-4 py-1.5 hover:bg-yellow-light transition-colors"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
         ) : isFull ? (
           <span className="font-condensed font-bold text-[0.72rem] tracking-[0.1em] uppercase bg-light text-muted px-4 py-1.5">

@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError
 from app.core.config import settings
 from app.core.database import engine
 from app.core.redis import redis_client
-from app.routers import products, tournaments, auth
+from app.routers import products, tournaments, auth, orders
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -41,6 +41,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(tournaments.router)
+app.include_router(orders.router)
 
 
 @app.get("/health")

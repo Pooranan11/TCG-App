@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (user) navigate(user.role === 'ADMIN' ? '/admin' : '/')
+    if (user) navigate(user.role === 'USER' ? '/' : '/admin')
   }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,9 +37,9 @@ export default function RegisterPage() {
       localStorage.setItem('token', access_token)
       await loadMe()
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 409) {
-        setError('Cet email est déjà utilisé.')
+      const e = err as { response?: { status?: number; data?: { detail?: string } } }
+      if (e.response?.status === 409) {
+        setError(e.response.data?.detail ?? 'Email ou nom d\'utilisateur déjà utilisé.')
       } else {
         setError('Une erreur est survenue. Veuillez réessayer.')
       }

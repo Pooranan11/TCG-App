@@ -2,6 +2,8 @@
 import asyncio
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+
 from app.core.auth import hash_password
 from app.core.database import AsyncSessionLocal
 from app.models.product import Product, ProductCategory
@@ -37,11 +39,29 @@ USERS = [
 
 async def seed():
     async with AsyncSessionLocal() as session:
-        for obj in [*PRODUCTS, *TOURNAMENTS, *USERS]:
-            session.add(obj)
+        # Products — skip if name already exists
+        existing_products = (await session.execute(select(Product.name))).scalars().all()
+        new_products = [p for p in PRODUCTS if p.name not in existing_products]
+        for p in new_products:
+            session.add(p)
+
+        # Tournaments — skip if name already exists
+        existing_tournaments = (await session.execute(select(Tournament.name))).scalars().all()
+        new_tournaments = [t for t in TOURNAMENTS if t.name not in existing_tournaments]
+        for t in new_tournaments:
+            session.add(t)
+
+        # Users — skip if email already exists
+        existing_emails = (await session.execute(select(User.email))).scalars().all()
+        new_users = [u for u in USERS if u.email not in existing_emails]
+        for u in new_users:
+            session.add(u)
+
         await session.commit()
-    print(f"Seeded {len(PRODUCTS)} products, {len(TOURNAMENTS)} tournaments, {len(USERS)} users.")
-    print("Admin: admin@chasseurdejeux.fr / Admin1234!")
+
+    print(f"Seeded {len(new_products)} products, {len(new_tournaments)} tournaments, {len(new_users)} users.")
+    if new_users:
+        print("Admin: admin@chasseurdejeux.fr / Admin1234!")
 
 
 if __name__ == "__main__":
