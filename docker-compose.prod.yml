@@ -31,6 +31,8 @@ services:
       POSTGRES_HOST: db
       REDIS_URL: redis://redis:6379
       APP_ENV: production
+    volumes:
+      - uploads:/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -47,9 +49,12 @@ services:
     restart: always
     ports:
       - "80:80"
+    volumes:
+      - uploads:/uploads
     depends_on:
       backend:
         condition: service_healthy
 
 volumes:
   pgdata:
+  uploads:

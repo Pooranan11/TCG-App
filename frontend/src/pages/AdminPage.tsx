@@ -1,9 +1,144 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { useProductStore } from '../store/productStore'
 import { useTournamentStore } from '../store/tournamentStore'
 import type { Product, Tournament, ProductCategory, TournamentStatus } from '../types'
 import client from '../api/client'
+
+// ─── TCG card search ─────────────────────────────────────────────────────────
+
+type CardResult = { id: string; name: string; image: string }
+
+async function searchTcgCards(query: string): Promise<CardResult[]> {
+  if (!query.trim()) return []
+  try {
+    const res = await fetch(
+      `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(query)}*&pageSize=6&select=id,name,images`
+    )
+    const json = await res.json()
+    return (json.data ?? []).map((c: { id: string; name: string; images: { small: string } }) => ({
+      id: c.id,
+      name: c.name,
+      image: c.images.small,
+    }))
+  } catch {
+    return []
+  }
+}
+
+// ─── Image picker ─────────────────────────────────────────────────────────────
+
+function ImagePicker({ category, value, onChange }: {
+  category: ProductCategory
+  value: string
+  onChange: (url: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const [results, setResults] = useState<CardResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSearch = async () => {
+    setSearching(true)
+    const cards = await searchTcgCards(search)
+    setResults(cards)
+    setSearching(false)
+  }
+
+  const uploadFile = async (file: File) => {
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    try {
+      const res = await client.post<{ url: string }>('/api/uploads', fd)
+      onChange(res.data.url)
+    } catch {
+      alert('Erreur lors de l\'upload.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) uploadFile(file)
+  }
+
+  return (
+    <div className="sm:col-span-2 flex flex-col gap-3">
+      <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50">
+        Image
+      </label>
+
+      {/* Preview */}
+      {value && (
+        <div className="flex items-center gap-3">
+          <img src={value} alt="" className="h-20 w-20 object-contain rounded border border-white/10 bg-navy" />
+          <button type="button" onClick={() => onChange('')}
+            className="text-red-400 text-xs hover:text-red-300">Supprimer</button>
+        </div>
+      )}
+
+      {category === 'TCG' ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
+              placeholder="Rechercher une carte (ex: Pikachu)"
+              className="flex-1 bg-navy border border-white/15 text-white placeholder-white/25 px-3 py-2 text-sm rounded focus:outline-none focus:border-yellow"
+            />
+            <button type="button" onClick={handleSearch} disabled={searching}
+              className="btn-primary px-4 text-sm">
+              {searching ? '…' : 'Chercher'}
+            </button>
+          </div>
+          {results.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {results.map((c) => (
+                <button key={c.id} type="button" onClick={() => { onChange(c.image); setResults([]) }}
+                  className={`rounded border-2 overflow-hidden transition-all ${value === c.image ? 'border-yellow' : 'border-white/10 hover:border-yellow/50'}`}>
+                  <img src={c.image} alt={c.name} className="w-full object-contain" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onClick={() => inputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            dragOver ? 'border-yellow bg-yellow/5' : 'border-white/20 hover:border-white/40'
+          }`}
+        >
+          {uploading ? (
+            <p className="text-white/50 text-sm">Upload en cours…</p>
+          ) : (
+            <>
+              <p className="text-white/50 text-sm">Glissez une image ici</p>
+              <p className="text-white/30 text-xs mt-1">ou cliquez pour parcourir</p>
+            </>
+          )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f) }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── Product form ────────────────────────────────────────────────────────────
 
@@ -57,9 +192,11 @@ function ProductForm({
         <input type="number" min="0" value={form.stock}
           onChange={(e) => set('stock', parseInt(e.target.value) || 0)} />
       </Field>
-      <Field label="Image URL" className="sm:col-span-2">
-        <input value={form.image_url ?? ''} onChange={(e) => set('image_url', e.target.value)} />
-      </Field>
+      <ImagePicker
+        category={form.category}
+        value={form.image_url}
+        onChange={(url) => set('image_url', url)}
+      />
       <Field label="Description" className="sm:col-span-2">
         <textarea rows={3} value={form.description ?? ''}
           onChange={(e) => set('description', e.target.value)} />
