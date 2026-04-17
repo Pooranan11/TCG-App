@@ -57,7 +57,9 @@ jobs:
           context: ./nginx
           push: true
           tags: ${{ env.IMAGE_NGINX }}:latest
-          build-args: CONFIG=nginx.prod.conf
+          build-args: |
+            CONFIG=nginx.prod.conf
+            FRONTEND_IMAGE=${{ env.IMAGE_FRONTEND }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

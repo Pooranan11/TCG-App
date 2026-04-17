@@ -42,17 +42,11 @@ services:
       timeout: 5s
       retries: 5
 
-  frontend:
-    image: ghcr.io/pooranan11/tcg-frontend:latest
-    restart: "no"
-
   nginx:
     image: ghcr.io/pooranan11/tcg-nginx:latest
     restart: always
     ports:
       - "80:80"
-    volumes_from:
-      - frontend
     depends_on:
       backend:
         condition: service_healthy
