@@ -28,11 +28,11 @@ async function searchTcgCards(query: string): Promise<CardResult[]> {
 
 // ─── Image picker ─────────────────────────────────────────────────────────────
 
-function ImagePicker({ category, value, onChange }: {
-  category: ProductCategory
+function ImagePicker({ value, onChange }: {
   value: string
   onChange: (url: string) => void
 }) {
+  const [mode, setMode] = useState<'search' | 'upload'>('upload')
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<CardResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -70,9 +70,21 @@ function ImagePicker({ category, value, onChange }: {
 
   return (
     <div className="sm:col-span-2 flex flex-col gap-3">
-      <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50">
-        Image
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50">
+          Image
+        </label>
+        <div className="flex gap-1 bg-navy rounded p-0.5">
+          <button type="button" onClick={() => setMode('upload')}
+            className={`px-3 py-1 text-xs rounded transition-colors ${mode === 'upload' ? 'bg-yellow text-navy font-bold' : 'text-white/50 hover:text-white'}`}>
+            Upload
+          </button>
+          <button type="button" onClick={() => setMode('search')}
+            className={`px-3 py-1 text-xs rounded transition-colors ${mode === 'search' ? 'bg-yellow text-navy font-bold' : 'text-white/50 hover:text-white'}`}>
+            Recherche carte
+          </button>
+        </div>
+      </div>
 
       {/* Preview */}
       {value && (
@@ -83,14 +95,14 @@ function ImagePicker({ category, value, onChange }: {
         </div>
       )}
 
-      {category === 'TCG' ? (
+      {mode === 'search' ? (
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch())}
-              placeholder="Rechercher une carte (ex: Pikachu)"
+              placeholder="Rechercher une carte Pokémon (ex: Pikachu)"
               className="flex-1 bg-navy border border-white/15 text-white placeholder-white/25 px-3 py-2 text-sm rounded focus:outline-none focus:border-yellow"
             />
             <button type="button" onClick={handleSearch} disabled={searching}
@@ -193,7 +205,6 @@ function ProductForm({
           onChange={(e) => set('stock', parseInt(e.target.value) || 0)} />
       </Field>
       <ImagePicker
-        category={form.category}
         value={form.image_url}
         onChange={(url) => set('image_url', url)}
       />
