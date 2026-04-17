@@ -19,7 +19,12 @@ function ProductForm({
   onSave: (data: typeof EMPTY_PRODUCT) => Promise<void>
   onCancel: () => void
 }) {
-  const [form, setForm] = useState({ ...EMPTY_PRODUCT, ...initial })
+  const [form, setForm] = useState({
+    ...EMPTY_PRODUCT,
+    ...initial,
+    description: initial?.description ?? '',
+    image_url: initial?.image_url ?? '',
+  })
   const [saving, setSaving] = useState(false)
 
   const set = (k: keyof typeof EMPTY_PRODUCT, v: string | number) =>
