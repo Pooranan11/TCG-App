@@ -7,7 +7,6 @@ interface TournamentState {
   loading: boolean
   error: string | null
   load: () => Promise<void>
-  fetchTournaments: () => Promise<void>
   register: (tournamentId: number) => Promise<void>
 }
 
@@ -17,16 +16,6 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
   error: null,
 
   load: async () => {
-    set({ loading: true, error: null })
-    try {
-      const tournaments = await fetchTournaments()
-      set({ tournaments, loading: false })
-    } catch {
-      set({ error: 'Erreur lors du chargement des tournois', loading: false })
-    }
-  },
-
-  fetchTournaments: async () => {
     set({ loading: true, error: null })
     try {
       const tournaments = await fetchTournaments()

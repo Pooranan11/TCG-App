@@ -162,8 +162,8 @@ type Tab = 'products' | 'tournaments'
 
 export default function AdminPage() {
   const { user } = useAuthStore()
-  const { products, fetchProducts } = useProductStore()
-  const { tournaments, fetchTournaments } = useTournamentStore()
+  const { products, load: loadProducts } = useProductStore()
+  const { tournaments, load: loadTournaments } = useTournamentStore()
   const isVendor = user?.role === 'VENDOR'
 
   const [tab, setTab] = useState<Tab>('products')
@@ -171,7 +171,7 @@ export default function AdminPage() {
   const [editingTournament, setEditingTournament] = useState<Tournament | null | 'new'>(null)
   const [error, setError] = useState('')
 
-  useEffect(() => { fetchProducts(); fetchTournaments() }, [fetchProducts, fetchTournaments])
+  useEffect(() => { loadProducts(); loadTournaments() }, [loadProducts, loadTournaments])
 
   // Products CRUD
   const saveProduct = async (data: typeof EMPTY_PRODUCT) => {
@@ -182,7 +182,7 @@ export default function AdminPage() {
       } else if (editingProduct) {
         await client.put(`/products/${editingProduct.id}`, data)
       }
-      await fetchProducts()
+      await loadProducts()
       setEditingProduct(null)
     } catch {
       setError('Une erreur est survenue.')
@@ -193,7 +193,7 @@ export default function AdminPage() {
     if (!confirm('Supprimer ce produit ?')) return
     try {
       await client.delete(`/products/${id}`)
-      await fetchProducts()
+      await loadProducts()
     } catch {
       setError('Impossible de supprimer.')
     }
@@ -208,7 +208,7 @@ export default function AdminPage() {
       } else if (editingTournament) {
         await client.put(`/tournaments/${editingTournament.id}`, data)
       }
-      await fetchTournaments()
+      await loadTournaments()
       setEditingTournament(null)
     } catch {
       setError('Une erreur est survenue.')
@@ -219,7 +219,7 @@ export default function AdminPage() {
     if (!confirm('Supprimer ce tournoi ?')) return
     try {
       await client.delete(`/tournaments/${id}`)
-      await fetchTournaments()
+      await loadTournaments()
     } catch {
       setError('Impossible de supprimer.')
     }
