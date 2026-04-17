@@ -34,6 +34,7 @@ services:
       REDIS_URL: redis://redis:6379
     volumes:
       - ./backend:/app
+      - uploads:/uploads
     depends_on:
       - db
       - redis
@@ -63,9 +64,12 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - uploads:/uploads
     depends_on:
       - backend
       - frontend
 
 volumes:
   pgdata:
+  uploads:
