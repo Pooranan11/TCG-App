@@ -24,9 +24,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/pooranan11/tcg-backend:latest
     restart: always
     env_file: .env
     environment:
@@ -45,40 +43,18 @@ services:
       retries: 5
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: build
-    image: tcg-frontend-build
+    image: ghcr.io/pooranan11/tcg-frontend:latest
+    restart: "no"
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-      args:
-        CONFIG: nginx.prod.conf
+    image: ghcr.io/pooranan11/tcg-nginx:latest
     restart: always
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
     volumes_from:
       - frontend
     depends_on:
       backend:
-        condition: service_healthy
-
-  umami:
-    image: ghcr.io/umami-software/umami:postgresql-latest
-    restart: always
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/umami
-      DATABASE_TYPE: postgresql
-      APP_SECRET: ${UMAMI_APP_SECRET}
-    depends_on:
-      db:
         condition: service_healthy
 
 volumes:
