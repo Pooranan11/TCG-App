@@ -52,7 +52,7 @@ function ImagePicker({ value, onChange }: {
     const fd = new FormData()
     fd.append('file', file)
     try {
-      const res = await client.post<{ url: string }>('/api/uploads', fd)
+      const res = await client.post<{ url: string }>('/uploads', fd)
       onChange(res.data.url)
     } catch {
       alert('Erreur lors de l\'upload.')
