@@ -386,14 +386,19 @@ export default function AdminPage() {
               {isVendor ? 'Mes produits' : 'Dashboard'}
             </h1>
           </div>
-          <p className="font-condensed text-sm text-white/40">
-            Connecté en tant que <span className="text-white">{user?.username}</span>
-            {user?.role && (
-              <span className="ml-2 font-condensed font-bold text-[0.6rem] tracking-[0.15em] uppercase px-1.5 py-0.5 rounded bg-yellow/20 text-yellow">
-                {user.role}
-              </span>
-            )}
-          </p>
+          <div className="flex items-center gap-4">
+            <a href="/" className="font-condensed font-bold text-[0.72rem] tracking-[0.12em] uppercase text-white/40 hover:text-yellow transition-colors">
+              ← Voir le site
+            </a>
+            <p className="font-condensed text-sm text-white/40">
+              <span className="text-white">{user?.username}</span>
+              {user?.role && (
+                <span className="ml-2 font-condensed font-bold text-[0.6rem] tracking-[0.15em] uppercase px-1.5 py-0.5 rounded bg-yellow/20 text-yellow">
+                  {user.role}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
       </div>
 
