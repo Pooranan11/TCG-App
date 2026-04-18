@@ -38,6 +38,8 @@ export default function RegisterPage() {
       const e = err as { response?: { status?: number; data?: { detail?: string } } }
       if (e.response?.status === 409) {
         setError(e.response.data?.detail ?? 'Email ou nom d\'utilisateur déjà utilisé.')
+      } else if (e.response?.status === 503) {
+        setError(e.response.data?.detail ?? 'Impossible d\'envoyer l\'email de vérification. Veuillez réessayer.')
       } else {
         setError('Une erreur est survenue. Veuillez réessayer.')
       }

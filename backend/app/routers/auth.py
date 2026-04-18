@@ -82,7 +82,18 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
 
     token = secrets.token_urlsafe(32)
     await redis_client.setex(f"verify:{token}", VERIFY_TOKEN_TTL, str(user.id))
-    await send_verification_email(user.email, token)
+
+    try:
+        await send_verification_email(user.email, token)
+    except Exception as e:
+        # Email failed — rollback user creation so the address stays free
+        await redis_client.delete(f"verify:{token}")
+        await db.delete(user)
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Impossible d'envoyer l'email de vérification. Veuillez réessayer.",
+        ) from e
 
     return {"message": "Compte créé. Vérifiez votre email pour activer votre compte."}
 
