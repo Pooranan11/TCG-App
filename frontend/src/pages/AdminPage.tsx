@@ -306,7 +306,17 @@ function Field({ label, required, className, children }: {
 
 // ─── Main admin page ──────────────────────────────────────────────────────────
 
-type Tab = 'products' | 'tournaments'
+type Tab = 'products' | 'tournaments' | 'users'
+
+interface AdminUser {
+  id: number
+  email: string
+  username: string
+  role: string
+  is_verified: boolean
+  is_active: boolean
+  created_at: string
+}
 
 export default function AdminPage() {
   const { user } = useAuthStore()
@@ -317,9 +327,20 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('products')
   const [editingProduct, setEditingProduct] = useState<Product | null | 'new'>(null)
   const [editingTournament, setEditingTournament] = useState<Tournament | null | 'new'>(null)
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [error, setError] = useState('')
 
+  const loadUsers = async () => {
+    try {
+      const res = await client.get<AdminUser[]>('/admin/users')
+      setUsers(res.data)
+    } catch {
+      setError('Impossible de charger les utilisateurs.')
+    }
+  }
+
   useEffect(() => { loadProducts(); loadTournaments() }, [loadProducts, loadTournaments])
+  useEffect(() => { if (tab === 'users') loadUsers() }, [tab])
 
   // Products CRUD
   const saveProduct = async (data: typeof EMPTY_PRODUCT) => {
@@ -373,6 +394,24 @@ export default function AdminPage() {
     }
   }
 
+  const toggleUserActive = async (u: AdminUser) => {
+    try {
+      await client.patch(`/admin/users/${u.id}`, { is_active: !u.is_active })
+      await loadUsers()
+    } catch {
+      setError('Impossible de modifier l\'utilisateur.')
+    }
+  }
+
+  const changeUserRole = async (u: AdminUser, role: string) => {
+    try {
+      await client.patch(`/admin/users/${u.id}`, { role })
+      await loadUsers()
+    } catch {
+      setError('Impossible de modifier le rôle.')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-navy">
       {/* Header */}
@@ -409,8 +448,8 @@ export default function AdminPage() {
             { label: 'Produits', value: products.length },
             ...(!isVendor ? [
               { label: 'Tournois', value: tournaments.length },
-              { label: 'À venir', value: tournaments.filter(t => t.status === 'UPCOMING').length },
-              { label: 'En cours', value: tournaments.filter(t => t.status === 'ONGOING').length },
+              { label: 'Utilisateurs', value: users.length || '—' },
+              { label: 'Non vérifiés', value: users.filter(u => !u.is_verified).length || '—' },
             ] : []),
           ].map(({ label, value }) => (
             <div key={label} className="bg-navy-light border border-white/10 rounded-lg p-4">
@@ -423,7 +462,7 @@ export default function AdminPage() {
         {/* Tabs — vendeur voit uniquement Produits */}
         {!isVendor && (
           <div className="flex gap-1 mb-6 border-b border-white/10">
-            {(['products', 'tournaments'] as Tab[]).map((t) => (
+            {(['products', 'tournaments', 'users'] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -431,7 +470,7 @@ export default function AdminPage() {
                   tab === t ? 'text-yellow border-yellow' : 'text-white/40 border-transparent hover:text-white'
                 }`}
               >
-                {t === 'products' ? 'Produits' : 'Tournois'}
+                {t === 'products' ? 'Produits' : t === 'tournaments' ? 'Tournois' : 'Utilisateurs'}
               </button>
             ))}
           </div>
@@ -505,6 +544,75 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Users tab */}
+        {tab === 'users' && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  {['Utilisateur', 'Email', 'Rôle', 'Vérifié', 'Statut', 'Inscription', 'Actions'].map((h) => (
+                    <th key={h} className="font-condensed font-bold text-[0.68rem] tracking-[0.15em] uppercase text-white/40 text-left py-3 px-3 first:pl-0">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-3 pl-0 text-white text-sm font-medium">{u.username}</td>
+                    <td className="py-3 px-3 text-white/50 text-sm">{u.email}</td>
+                    <td className="py-3 px-3">
+                      <select
+                        value={u.role}
+                        onChange={(e) => changeUserRole(u, e.target.value)}
+                        disabled={u.id === user?.id}
+                        className="bg-navy border border-white/15 text-white text-xs rounded px-2 py-1 focus:outline-none focus:border-yellow disabled:opacity-40"
+                      >
+                        <option value="USER">USER</option>
+                        <option value="VENDOR">VENDOR</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </select>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className={`font-condensed font-bold text-xs px-2 py-0.5 rounded ${
+                        u.is_verified ? 'bg-green-500/20 text-green-400' : 'bg-yellow/20 text-yellow'
+                      }`}>
+                        {u.is_verified ? 'Oui' : 'Non'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className={`font-condensed font-bold text-xs px-2 py-0.5 rounded ${
+                        u.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {u.is_active ? 'Actif' : 'Banni'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-white/40 text-sm">
+                      {new Date(u.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="py-3 px-3">
+                      {u.id !== user?.id && (
+                        <button
+                          onClick={() => toggleUserActive(u)}
+                          className={`text-xs font-condensed font-bold uppercase tracking-wider transition-colors ${
+                            u.is_active ? 'text-red-400/60 hover:text-red-400' : 'text-green-400/60 hover:text-green-400'
+                          }`}
+                        >
+                          {u.is_active ? 'Bannir' : 'Réactiver'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr><td colSpan={7} className="py-8 text-center text-white/30 text-sm">Aucun utilisateur</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
 
