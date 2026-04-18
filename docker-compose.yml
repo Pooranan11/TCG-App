@@ -23,6 +23,12 @@ services:
       timeout: 5s
       retries: 5
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
   backend:
     build:
       context: ./backend
@@ -38,6 +44,7 @@ services:
     depends_on:
       - db
       - redis
+      - mailhog
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 5s

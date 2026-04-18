@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "changeme"
     CORS_ORIGINS: str = "http://localhost"
     APP_ENV: str = "development"
+    FRONTEND_URL: str = "http://localhost"
+
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@chasseurdejeux.fr"
+    SMTP_TLS: bool = True
 
     @property
     def database_url(self) -> str:

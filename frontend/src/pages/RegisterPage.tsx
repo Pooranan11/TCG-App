@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
-import { register as apiRegister, login as apiLogin } from '../api/auth'
+import { register as apiRegister } from '../api/auth'
 import Logo from '../components/Logo'
 
 export default function RegisterPage() {
-  const { user, loadMe } = useAuthStore()
+  const { user } = useAuthStore()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     if (user) navigate(user.role === 'USER' ? '/' : '/admin')
@@ -32,10 +33,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await apiRegister({ email, username, password })
-      // Auto-login after registration
-      const { access_token } = await apiLogin({ email, password })
-      localStorage.setItem('token', access_token)
-      await loadMe()
+      setSuccess(true)
     } catch (err: unknown) {
       const e = err as { response?: { status?: number; data?: { detail?: string } } }
       if (e.response?.status === 409) {
@@ -50,7 +48,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-navy flex items-center justify-center px-4">
-      {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div className="absolute rounded-full border-[40px] border-yellow/[0.06]"
           style={{ width: 500, height: 500, right: -100, bottom: -100 }} />
@@ -59,7 +56,6 @@ export default function RegisterPage() {
       </div>
 
       <div className="relative w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <Logo size={56} />
           <div className="mt-3 text-center">
@@ -68,79 +64,94 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Card */}
         <div className="bg-navy-light border border-white/10 rounded-lg p-8">
-          <h1 className="font-condensed font-black text-xl uppercase tracking-wide text-white mb-6">
-            Créer un compte
-          </h1>
+          {success ? (
+            <div className="text-center">
+              <div className="text-4xl mb-4">✉️</div>
+              <h1 className="font-condensed font-black text-xl uppercase tracking-wide text-white mb-3">
+                Vérifiez votre email
+              </h1>
+              <p className="text-white/60 text-sm leading-relaxed">
+                Un email de confirmation a été envoyé à <span className="text-yellow">{email}</span>.
+                <br /><br />
+                Cliquez sur le lien dans l'email pour activer votre compte.
+              </p>
+            </div>
+          ) : (
+            <>
+              <h1 className="font-condensed font-black text-xl uppercase tracking-wide text-white mb-6">
+                Créer un compte
+              </h1>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
-                placeholder="vous@exemple.fr"
-              />
-            </div>
-            <div>
-              <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
-                Nom d'utilisateur
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                minLength={3}
-                className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
-                placeholder="dresseur42"
-              />
-            </div>
-            <div>
-              <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
-                placeholder="••••••••"
-              />
-            </div>
-            <div>
-              <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
-                Confirmer le mot de passe
-              </label>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
-                placeholder="••••••••"
-              />
-            </div>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div>
+                  <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
+                    placeholder="vous@exemple.fr"
+                  />
+                </div>
+                <div>
+                  <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
+                    Nom d'utilisateur
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    minLength={3}
+                    className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
+                    placeholder="dresseur42"
+                  />
+                </div>
+                <div>
+                  <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
+                    Mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div>
+                  <label className="block font-condensed font-bold text-[0.72rem] tracking-[0.15em] uppercase text-white/50 mb-1.5">
+                    Confirmer le mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    required
+                    className="w-full bg-navy border border-white/15 text-white placeholder-white/25 px-4 py-2.5 text-sm rounded focus:outline-none focus:border-yellow transition-colors"
+                    placeholder="••••••••"
+                  />
+                </div>
 
-            {error && (
-              <p className="text-red-400 text-[0.8rem] font-medium">{error}</p>
-            )}
+                {error && (
+                  <p className="text-red-400 text-[0.8rem] font-medium">{error}</p>
+                )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy py-3 hover:bg-yellow-light transition-colors disabled:opacity-60 mt-2"
-            >
-              {loading ? 'Création...' : "S'inscrire"}
-            </button>
-          </form>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy py-3 hover:bg-yellow-light transition-colors disabled:opacity-60 mt-2"
+                >
+                  {loading ? 'Création...' : "S'inscrire"}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         <div className="text-center mt-4 flex flex-col gap-2">

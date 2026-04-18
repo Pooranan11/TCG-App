@@ -28,4 +28,14 @@ class UserRead(BaseModel):
     email: str
     username: str
     role: UserRole
+    is_verified: bool
     created_at: datetime
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

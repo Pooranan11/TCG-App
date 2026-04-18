@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import secrets
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,10 +12,22 @@ from app.core.auth import (
     verify_password,
 )
 from app.core.database import get_db
+from app.core.email import send_reset_password_email, send_verification_email
+from app.core.redis import redis_client
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserRead
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    TokenResponse,
+    UserRead,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+VERIFY_TOKEN_TTL = 60 * 60 * 24      # 24 heures
+RESET_TOKEN_TTL = 60 * 60             # 1 heure
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -28,12 +42,17 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
         )
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Compte désactivé")
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Veuillez vérifier votre adresse email avant de vous connecter",
+        )
 
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return TokenResponse(access_token=token)
 
 
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     existing = await db.execute(
         select(User).where((User.email == payload.email) | (User.username == payload.username))
@@ -48,6 +67,7 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
         email=payload.email,
         username=payload.username,
         hashed_password=hash_password(payload.password),
+        is_verified=False,
     )
     db.add(user)
     try:
@@ -55,8 +75,76 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
         await db.refresh(user)
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email ou nom d'utilisateur déjà utilisé")
-    return user
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email ou nom d'utilisateur déjà utilisé",
+        )
+
+    token = secrets.token_urlsafe(32)
+    await redis_client.setex(f"verify:{token}", VERIFY_TOKEN_TTL, str(user.id))
+    await send_verification_email(user.email, token)
+
+    return {"message": "Compte créé. Vérifiez votre email pour activer votre compte."}
+
+
+@router.get("/verify-email")
+async def verify_email(token: str = Query(...), db: AsyncSession = Depends(get_db)):
+    user_id = await redis_client.get(f"verify:{token}")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Lien de vérification invalide ou expiré",
+        )
+
+    user = await db.get(User, int(user_id))
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable")
+
+    user.is_verified = True
+    await db.commit()
+    await redis_client.delete(f"verify:{token}")
+
+    return {"message": "Email vérifié avec succès. Vous pouvez maintenant vous connecter."}
+
+
+@router.post("/forgot-password")
+async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    # Toujours retourner 200 pour ne pas révéler si l'email existe
+    result = await db.execute(select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
+
+    if user and user.is_active:
+        token = secrets.token_urlsafe(32)
+        await redis_client.setex(f"reset:{token}", RESET_TOKEN_TTL, str(user.id))
+        await send_reset_password_email(user.email, token)
+
+    return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé."}
+
+
+@router.post("/reset-password")
+async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    if len(payload.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Le mot de passe doit contenir au moins 8 caractères",
+        )
+
+    user_id = await redis_client.get(f"reset:{payload.token}")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Lien de réinitialisation invalide ou expiré",
+        )
+
+    user = await db.get(User, int(user_id))
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable")
+
+    user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
+    await redis_client.delete(f"reset:{payload.token}")
+
+    return {"message": "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter."}
 
 
 @router.get("/me", response_model=UserRead)
