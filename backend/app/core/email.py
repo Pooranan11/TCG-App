@@ -20,15 +20,19 @@ async def send_email(to: str, subject: str, html: str) -> None:
     message["Subject"] = subject
     message.attach(MIMEText(html, "html", "utf-8"))
 
-    await aiosmtplib.send(
-        message,
-        hostname=settings.SMTP_HOST,
-        port=settings.SMTP_PORT,
-        username=settings.SMTP_USER,
-        password=settings.SMTP_PASSWORD,
-        start_tls=settings.SMTP_TLS,
-        validate_certs=settings.SMTP_TLS,
-    )
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname=settings.SMTP_HOST,
+            port=settings.SMTP_PORT,
+            username=settings.SMTP_USER,
+            password=settings.SMTP_PASSWORD,
+            start_tls=settings.SMTP_TLS,
+            validate_certs=settings.SMTP_TLS,
+        )
+    except Exception as exc:
+        logger.error("SMTP error sending to %s: %s", to, exc)
+        raise
 
 
 async def send_verification_email(to: str, token: str) -> None:
