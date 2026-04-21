@@ -246,7 +246,7 @@ function TournamentForm({
   })
   const [saving, setSaving] = useState(false)
 
-  const set = (k: keyof typeof EMPTY_TOURNAMENT, v: string | number) =>
+  const setField = (k: keyof typeof EMPTY_TOURNAMENT, v: string | number) =>
     setForm((f) => ({ ...f, [k]: v }))
 
   const submit = async (e: React.FormEvent) => {
