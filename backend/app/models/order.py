@@ -41,5 +41,8 @@ class OrderItem(Base):
     product_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    graded_card_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("graded_cards.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)

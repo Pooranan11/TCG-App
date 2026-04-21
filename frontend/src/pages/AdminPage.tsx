@@ -2,10 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { useProductStore } from '../store/productStore'
 import { useTournamentStore } from '../store/tournamentStore'
-import type { Product, Tournament, ProductCategory, TournamentStatus } from '../types'
+import type { GradedCard, GradingCompany, Product, Tournament, ProductCategory, TournamentStatus } from '../types'
 import { createProduct, updateProduct, deleteProduct } from '../api/products'
 import { createTournament, updateTournament, deleteTournament } from '../api/tournaments'
 import { fetchAdminUsers, patchAdminUser, type AdminUser } from '../api/admin'
+import {
+  fetchGradedCards,
+  createGradedCard,
+  updateGradedCard,
+  deleteGradedCard,
+} from '../api/gradedCards'
+import { GRADING_COMPANY_STYLE, GRADE_COLOR } from '../utils/labels'
 import client from '../api/client'
 
 // ─── TCG card search ─────────────────────────────────────────────────────────
@@ -307,9 +314,102 @@ function Field({ label, required, className, children }: {
   )
 }
 
+// ─── Graded card form ─────────────────────────────────────────────────────────
+
+const EMPTY_GRADED_CARD = {
+  card_name: '',
+  card_number: '',
+  set_name: '',
+  grading_company: 'PSA' as GradingCompany,
+  grade: '',
+  cert_number: '',
+  price: 0,
+  stock: 1,
+  description: '',
+  image_url: '',
+  pokemon_tcg_id: '',
+}
+
+function GradedCardForm({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial?: Partial<GradedCard>
+  onSave: (data: typeof EMPTY_GRADED_CARD) => Promise<void>
+  onCancel: () => void
+}) {
+  const [form, setForm] = useState({
+    ...EMPTY_GRADED_CARD,
+    ...initial,
+    cert_number: initial?.cert_number ?? '',
+    description: initial?.description ?? '',
+    image_url: initial?.image_url ?? '',
+    pokemon_tcg_id: initial?.pokemon_tcg_id ?? '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const setField = (k: keyof typeof EMPTY_GRADED_CARD, v: string | number) =>
+    setForm((f) => ({ ...f, [k]: v }))
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    await onSave(form)
+    setSaving(false)
+  }
+
+  return (
+    <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Field label="Nom de la carte" required>
+        <input value={form.card_name} onChange={(e) => setField('card_name', e.target.value)} required />
+      </Field>
+      <Field label="Numéro de carte" required>
+        <input value={form.card_number} onChange={(e) => setField('card_number', e.target.value)} required />
+      </Field>
+      <Field label="Set / Extension" required>
+        <input value={form.set_name} onChange={(e) => setField('set_name', e.target.value)} required />
+      </Field>
+      <Field label="Société de gradation">
+        <select value={form.grading_company} onChange={(e) => setField('grading_company', e.target.value as GradingCompany)}>
+          <option value="PSA">PSA</option>
+          <option value="BGS">BGS</option>
+          <option value="CGC">CGC</option>
+        </select>
+      </Field>
+      <Field label="Grade" required>
+        <input value={form.grade} onChange={(e) => setField('grade', e.target.value)}
+          placeholder="ex: 10, 9.5, 9" required />
+      </Field>
+      <Field label="N° de certificat">
+        <input value={form.cert_number} onChange={(e) => setField('cert_number', e.target.value)} />
+      </Field>
+      <Field label="Prix (€)" required>
+        <input type="number" step="0.01" min="0" value={form.price}
+          onChange={(e) => setField('price', parseFloat(e.target.value) || 0)} required />
+      </Field>
+      <Field label="Stock">
+        <input type="number" min="0" value={form.stock}
+          onChange={(e) => setField('stock', parseInt(e.target.value) || 0)} />
+      </Field>
+      <ImagePicker value={form.image_url} onChange={(url) => setField('image_url', url)} />
+      <Field label="Description" className="sm:col-span-2">
+        <textarea rows={3} value={form.description}
+          onChange={(e) => setField('description', e.target.value)} />
+      </Field>
+      <div className="sm:col-span-2 flex gap-3 justify-end">
+        <button type="button" onClick={onCancel} className="btn-secondary">Annuler</button>
+        <button type="submit" disabled={saving} className="btn-primary">
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
 // ─── Main admin page ──────────────────────────────────────────────────────────
 
-type Tab = 'products' | 'tournaments' | 'users'
+type Tab = 'products' | 'tournaments' | 'users' | 'graded_cards'
 
 export default function AdminPage() {
   const { user } = useAuthStore()
@@ -320,10 +420,13 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('products')
   const [editingProduct, setEditingProduct] = useState<Product | null | 'new'>(null)
   const [editingTournament, setEditingTournament] = useState<Tournament | null | 'new'>(null)
+  const [editingGradedCard, setEditingGradedCard] = useState<GradedCard | null | 'new'>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
+  const [gradedCards, setGradedCards] = useState<GradedCard[]>([])
   const [productError, setProductError] = useState('')
   const [tournamentError, setTournamentError] = useState('')
   const [usersError, setUsersError] = useState('')
+  const [gradedCardsError, setGradedCardsError] = useState('')
 
   const loadUsers = async () => {
     try {
@@ -333,8 +436,17 @@ export default function AdminPage() {
     }
   }
 
+  const loadGradedCards = async () => {
+    try {
+      setGradedCards(await fetchGradedCards())
+    } catch {
+      setGradedCardsError('Impossible de charger les cartes gradées.')
+    }
+  }
+
   useEffect(() => { loadProducts(); loadTournaments() }, [loadProducts, loadTournaments])
   useEffect(() => { if (tab === 'users') loadUsers() }, [tab])
+  useEffect(() => { if (tab === 'graded_cards') loadGradedCards() }, [tab])
 
   // Products CRUD
   const saveProduct = async (data: typeof EMPTY_PRODUCT) => {
@@ -385,6 +497,31 @@ export default function AdminPage() {
       await loadTournaments()
     } catch {
       setTournamentError('Impossible de supprimer.')
+    }
+  }
+
+  const saveGradedCard = async (data: typeof EMPTY_GRADED_CARD) => {
+    setGradedCardsError('')
+    try {
+      if (editingGradedCard === 'new') {
+        await createGradedCard(data)
+      } else if (editingGradedCard) {
+        await updateGradedCard(editingGradedCard.id, data)
+      }
+      await loadGradedCards()
+      setEditingGradedCard(null)
+    } catch {
+      setGradedCardsError('Une erreur est survenue.')
+    }
+  }
+
+  const handleDeleteGradedCard = async (id: number) => {
+    if (!confirm('Supprimer cette carte gradée ?')) return
+    try {
+      await deleteGradedCard(id)
+      await loadGradedCards()
+    } catch {
+      setGradedCardsError('Impossible de supprimer.')
     }
   }
 
@@ -441,9 +578,9 @@ export default function AdminPage() {
           {[
             { label: 'Produits', value: products.length },
             ...(!isVendor ? [
+              { label: 'Cartes gradées', value: gradedCards.length || '—' },
               { label: 'Tournois', value: tournaments.length },
               { label: 'Utilisateurs', value: users.length || '—' },
-              { label: 'Non vérifiés', value: users.filter(u => !u.is_verified).length || '—' },
             ] : []),
           ].map(({ label, value }) => (
             <div key={label} className="bg-navy-light border border-white/10 rounded-lg p-4">
@@ -456,7 +593,7 @@ export default function AdminPage() {
         {/* Tabs — vendeur voit uniquement Produits */}
         {!isVendor && (
           <div className="flex gap-1 mb-6 border-b border-white/10">
-            {(['products', 'tournaments', 'users'] as Tab[]).map((t) => (
+            {(['products', 'graded_cards', 'tournaments', 'users'] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -464,7 +601,10 @@ export default function AdminPage() {
                   tab === t ? 'text-yellow border-yellow' : 'text-white/40 border-transparent hover:text-white'
                 }`}
               >
-                {t === 'products' ? 'Produits' : t === 'tournaments' ? 'Tournois' : 'Utilisateurs'}
+                {t === 'products' ? 'Produits'
+                  : t === 'graded_cards' ? 'Cartes Gradées'
+                  : t === 'tournaments' ? 'Tournois'
+                  : 'Utilisateurs'}
               </button>
             ))}
           </div>
@@ -605,6 +745,92 @@ export default function AdminPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Graded cards tab */}
+        {tab === 'graded_cards' && (
+          <div>
+            {gradedCardsError && <p className="text-red-400 text-sm mb-4">{gradedCardsError}</p>}
+            {editingGradedCard ? (
+              <div className="bg-navy-light border border-white/10 rounded-lg p-6 mb-6">
+                <h2 className="font-condensed font-black text-lg uppercase tracking-wide text-white mb-4">
+                  {editingGradedCard === 'new' ? 'Nouvelle carte gradée' : 'Modifier la carte'}
+                </h2>
+                <GradedCardForm
+                  initial={editingGradedCard === 'new' ? undefined : editingGradedCard}
+                  onSave={saveGradedCard}
+                  onCancel={() => setEditingGradedCard(null)}
+                />
+              </div>
+            ) : (
+              <button onClick={() => setEditingGradedCard('new')} className="btn-primary mb-6">
+                + Ajouter une carte gradée
+              </button>
+            )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    {['Carte', 'Set', 'Grade', 'Cert.', 'Prix', 'Stock', 'Actions'].map((h) => (
+                      <th key={h} className="font-condensed font-bold text-[0.68rem] tracking-[0.15em] uppercase text-white/40 text-left py-3 px-3 first:pl-0">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {gradedCards.map((gc) => (
+                    <tr key={gc.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3 pl-0">
+                        <div className="flex items-center gap-2">
+                          {gc.image_url && (
+                            <img src={gc.image_url} alt={gc.card_name} className="h-10 w-8 object-contain rounded" />
+                          )}
+                          <span className="text-white text-sm font-medium">{gc.card_name} #{gc.card_number}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-white/50 text-sm">{gc.set_name}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-condensed font-black text-[0.6rem] tracking-widest uppercase px-2 py-0.5 rounded ${GRADING_COMPANY_STYLE[gc.grading_company]}`}>
+                            {gc.grading_company}
+                          </span>
+                          <span className={`font-condensed font-black text-sm bg-navy/80 px-1.5 py-0.5 rounded ${GRADE_COLOR(gc.grade)}`}>
+                            {gc.grade}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-white/40 text-xs font-mono">
+                        {gc.cert_number ?? '—'}
+                      </td>
+                      <td className="py-3 px-3 text-white/70 text-sm">{gc.price.toFixed(2)} €</td>
+                      <td className="py-3 px-3">
+                        <span className={`font-condensed font-bold text-xs px-2 py-0.5 rounded ${
+                          gc.stock === 0 ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                        }`}>
+                          {gc.stock}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingGradedCard(gc)} className="text-white/40 hover:text-white text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
+                            Modifier
+                          </button>
+                          <button onClick={() => handleDeleteGradedCard(gc.id)} className="text-red-400/60 hover:text-red-400 text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
+                            Supprimer
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {gradedCards.length === 0 && (
+                    <tr><td colSpan={7} className="py-8 text-center text-white/30 text-sm">Aucune carte gradée</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

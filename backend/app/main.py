@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError
 from app.core.config import settings
 from app.core.database import engine
 from app.core.redis import redis_client
-from app.routers import products, tournaments, auth, orders, uploads, admin
+from app.routers import products, tournaments, auth, orders, uploads, admin, graded_cards
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -46,6 +46,7 @@ app.include_router(tournaments.router)
 app.include_router(orders.router)
 app.include_router(uploads.router)
 app.include_router(admin.router)
+app.include_router(graded_cards.router)
 
 
 @app.get("/health")

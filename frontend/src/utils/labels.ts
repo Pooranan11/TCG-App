@@ -27,3 +27,17 @@ export const ORDER_STATUS_STYLE: Record<string, string> = {
   PAID: 'bg-green-500/20 text-green-600',
   CANCELLED: 'bg-red-500/20 text-red-500',
 }
+
+export const GRADING_COMPANY_STYLE: Record<string, string> = {
+  PSA: 'bg-blue-600 text-white',
+  BGS: 'bg-red-600 text-white',
+  CGC: 'bg-purple-600 text-white',
+}
+
+export const GRADE_COLOR = (grade: string): string => {
+  const n = parseFloat(grade)
+  if (n >= 10) return 'text-yellow font-black'
+  if (n >= 9) return 'text-green-400 font-bold'
+  if (n >= 7) return 'text-white font-semibold'
+  return 'text-white/60'
+}

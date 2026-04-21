@@ -36,11 +36,30 @@ export interface User {
   created_at: string
 }
 
+export type GradingCompany = 'PSA' | 'BGS' | 'CGC'
+
+export interface GradedCard {
+  id: number
+  card_name: string
+  card_number: string
+  set_name: string
+  pokemon_tcg_id: string | null
+  image_url: string | null
+  grading_company: GradingCompany
+  grade: string
+  cert_number: string | null
+  price: number
+  stock: number
+  description: string | null
+  created_at: string
+}
+
 export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED'
 
 export interface OrderItem {
   id: number
   product_id: number | null
+  graded_card_id: number | null
   quantity: number
   unit_price: number
 }

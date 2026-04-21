@@ -15,6 +15,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import AdminPage from './pages/AdminPage'
 import CartPage from './pages/CartPage'
 import OrdersPage from './pages/OrdersPage'
+import GradedCardsPage from './pages/GradedCardsPage'
+import GradedCardPage from './pages/GradedCardPage'
 import { useAuthStore } from './store/authStore'
 
 export default function App() {
@@ -47,6 +49,8 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:id" element={<ProductPage />} />
+              <Route path="/graded-cards" element={<GradedCardsPage />} />
+              <Route path="/graded-cards/:id" element={<GradedCardPage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/orders" element={

@@ -7,6 +7,7 @@ import { useCartStore } from '../store/cartStore'
 const LINKS = [
   { to: '/', label: 'Accueil', end: true },
   { to: '/products', label: 'Catalogue', end: false },
+  { to: '/graded-cards', label: 'Cartes Gradées', end: false },
   { to: '/tournaments', label: 'Tournois', end: false },
 ]
 
