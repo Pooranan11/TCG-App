@@ -1,19 +1,19 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.user import UserRole
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
 class RegisterRequest(BaseModel):
-    email: str
+    email: EmailStr
     username: str
-    password: str
+    password: str = Field(min_length=8)
 
 
 class TokenResponse(BaseModel):
@@ -33,9 +33,9 @@ class UserRead(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=8)

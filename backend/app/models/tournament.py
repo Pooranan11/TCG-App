@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, Integer, String, func
+from sqlalchemy import DateTime, Enum, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -22,7 +22,7 @@ class Tournament(Base):
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     max_players: Mapped[int] = mapped_column(Integer, nullable=False)
     registered_players: Mapped[int] = mapped_column(Integer, default=0)
-    entry_fee: Mapped[float] = mapped_column(Float, default=0.0)
+    entry_fee: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     status: Mapped[TournamentStatus] = mapped_column(
         Enum(TournamentStatus, name="tournamentstatus"), default=TournamentStatus.UPCOMING
     )

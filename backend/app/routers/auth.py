@@ -1,6 +1,9 @@
+import logging
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+logger = logging.getLogger(__name__)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -127,19 +130,21 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
     if user and user.is_active:
         token = secrets.token_urlsafe(32)
         await redis_client.setex(f"reset:{token}", RESET_TOKEN_TTL, str(user.id))
-        await send_reset_password_email(user.email, token)
+        try:
+            await send_reset_password_email(user.email, token)
+        except Exception as exc:
+            await redis_client.delete(f"reset:{token}")
+            logger.error("Failed to send reset password email to %s: %s", user.email, exc)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Impossible d'envoyer l'email. Veuillez réessayer plus tard.",
+            )
 
     return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé."}
 
 
 @router.post("/reset-password")
 async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
-    if len(payload.new_password) < 8:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Le mot de passe doit contenir au moins 8 caractères",
-        )
-
     user_id = await redis_client.get(f"reset:{payload.token}")
     if not user_id:
         raise HTTPException(

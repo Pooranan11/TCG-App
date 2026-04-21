@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +23,18 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "noreply@chasseurdejeux.fr"
     SMTP_TLS: bool = True
+
+    SEED_ADMIN_EMAIL: str = "admin@chasseurdejeux.fr"
+    SEED_ADMIN_PASSWORD: str = "Admin1234!"
+
+    @model_validator(mode="after")
+    def check_production_secrets(self) -> "Settings":
+        if self.APP_ENV == "production":
+            if self.SECRET_KEY == "changeme":
+                raise ValueError("SECRET_KEY must be changed in production")
+            if self.POSTGRES_PASSWORD == "tcg":
+                raise ValueError("POSTGRES_PASSWORD must be changed in production")
+        return self
 
     @property
     def database_url(self) -> str:

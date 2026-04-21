@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from app.core.auth import hash_password
+from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models.product import Product, ProductCategory
 from app.models.tournament import Tournament, TournamentStatus
@@ -33,7 +34,7 @@ TOURNAMENTS = [
 ]
 
 USERS = [
-    User(email="admin@chasseurdejeux.fr", username="admin", hashed_password=hash_password("Admin1234!"), role=UserRole.ADMIN),
+    User(email=settings.SEED_ADMIN_EMAIL, username="admin", hashed_password=hash_password(settings.SEED_ADMIN_PASSWORD), role=UserRole.ADMIN),
 ]
 
 
@@ -61,7 +62,7 @@ async def seed():
 
     print(f"Seeded {len(new_products)} products, {len(new_tournaments)} tournaments, {len(new_users)} users.")
     if new_users:
-        print("Admin: admin@chasseurdejeux.fr / Admin1234!")
+        print(f"Admin user created: {settings.SEED_ADMIN_EMAIL}")
 
 
 if __name__ == "__main__":

@@ -1,14 +1,10 @@
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-
-if TYPE_CHECKING:
-    pass
 
 
 class OrderStatus(str, enum.Enum):
@@ -27,7 +23,7 @@ class Order(Base):
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus, name="orderstatus"), default=OrderStatus.PENDING, nullable=False
     )
-    total: Mapped[float] = mapped_column(Float, nullable=False)
+    total: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -46,4 +42,4 @@ class OrderItem(Base):
         Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True, index=True
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+    unit_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)

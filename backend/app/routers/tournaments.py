@@ -21,7 +21,7 @@ async def list_tournaments(db: AsyncSession = Depends(get_db)):
 async def get_tournament(tournament_id: int, db: AsyncSession = Depends(get_db)):
     tournament = await db.get(Tournament, tournament_id)
     if not tournament:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournament not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournoi introuvable")
     return tournament
 
 
@@ -29,7 +29,7 @@ async def get_tournament(tournament_id: int, db: AsyncSession = Depends(get_db))
 async def create_tournament(
     payload: TournamentCreate,
     db: AsyncSession = Depends(get_db),
-    _admin=Depends(require_admin),
+    _=Depends(require_admin),
 ):
     tournament = Tournament(**payload.model_dump())
     db.add(tournament)
@@ -43,11 +43,11 @@ async def update_tournament(
     tournament_id: int,
     payload: TournamentUpdate,
     db: AsyncSession = Depends(get_db),
-    _admin=Depends(require_admin),
+    _=Depends(require_admin),
 ):
     tournament = await db.get(Tournament, tournament_id)
     if not tournament:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournament not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournoi introuvable")
     for field, value in payload.model_dump().items():
         setattr(tournament, field, value)
     await db.commit()
@@ -59,11 +59,11 @@ async def update_tournament(
 async def delete_tournament(
     tournament_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin=Depends(require_admin),
+    _=Depends(require_admin),
 ):
     tournament = await db.get(Tournament, tournament_id)
     if not tournament:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournament not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournoi introuvable")
     await db.delete(tournament)
     await db.commit()
 
@@ -77,7 +77,7 @@ async def register_for_tournament(
     """Register the authenticated user for a tournament."""
     tournament = await db.get(Tournament, tournament_id)
     if not tournament:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournament not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tournoi introuvable")
 
     if tournament.status != "UPCOMING":
         raise HTTPException(

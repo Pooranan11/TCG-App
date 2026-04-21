@@ -20,7 +20,7 @@ async def list_products(db: AsyncSession = Depends(get_db)):
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     product = await db.get(Product, product_id)
     if not product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produit introuvable")
     return product
 
 
@@ -28,7 +28,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 async def create_product(
     payload: ProductCreate,
     db: AsyncSession = Depends(get_db),
-    _auth=Depends(require_vendor_or_admin),
+    _=Depends(require_vendor_or_admin),
 ):
     product = Product(**payload.model_dump())
     db.add(product)
@@ -42,11 +42,11 @@ async def update_product(
     product_id: int,
     payload: ProductUpdate,
     db: AsyncSession = Depends(get_db),
-    _auth=Depends(require_vendor_or_admin),
+    _=Depends(require_vendor_or_admin),
 ):
     product = await db.get(Product, product_id)
     if not product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produit introuvable")
     for field, value in payload.model_dump().items():
         setattr(product, field, value)
     await db.commit()
@@ -58,10 +58,10 @@ async def update_product(
 async def delete_product(
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    _auth=Depends(require_vendor_or_admin),
+    _=Depends(require_vendor_or_admin),
 ):
     product = await db.get(Product, product_id)
     if not product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produit introuvable")
     await db.delete(product)
     await db.commit()

@@ -28,6 +28,8 @@ async def wait_for_db() -> None:
             logger.warning("Database not ready yet (attempt %d/20), retrying in 2s…", attempt)
             await asyncio.sleep(2)
     logger.error("Could not connect to the database after 20 attempts.")
+    import sys
+    sys.exit(1)
 
 
 app.add_middleware(
@@ -54,12 +56,14 @@ async def health():
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-    except Exception:
+    except Exception as exc:
+        logger.error("Health check DB error: %s", exc)
         db_status = "error"
 
     try:
         await redis_client.ping()
-    except Exception:
+    except Exception as exc:
+        logger.error("Health check Redis error: %s", exc)
         redis_status = "error"
 
     overall = "ok" if db_status == "ok" and redis_status == "ok" else "error"
