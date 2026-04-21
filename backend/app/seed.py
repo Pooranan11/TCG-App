@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.core.auth import hash_password
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
+from app.models.graded_card import GradedCard, GradingCompany
 from app.models.product import Product, ProductCategory
 from app.models.tournament import Tournament, TournamentStatus
 from app.models.user import User, UserRole
@@ -33,6 +34,81 @@ TOURNAMENTS = [
     Tournament(name="Yu-Gi-Oh! — Regional Qualifier", game="Yu-Gi-Oh!", date=datetime(2026, 6, 1, 10, 0, tzinfo=timezone.utc), max_players=64, registered_players=0, entry_fee=20.0, status=TournamentStatus.UPCOMING),
 ]
 
+GRADED_CARDS = [
+    GradedCard(
+        card_name="Dracaufeu",
+        card_number="4",
+        set_name="Base Set",
+        grading_company=GradingCompany.PSA,
+        grade="9",
+        cert_number="12345678",
+        price=1200.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/base1/4.png",
+        description="Dracaufeu Holographique de la Base Set 1999, gradé PSA 9 Mint. Carte iconic du jeu Pokémon.",
+    ),
+    GradedCard(
+        card_name="Pikachu",
+        card_number="58",
+        set_name="Base Set",
+        grading_company=GradingCompany.PSA,
+        grade="10",
+        cert_number="87654321",
+        price=450.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/base1/58.png",
+        description="Pikachu de la Base Set, gradé PSA 10 Gem Mint. État parfait.",
+    ),
+    GradedCard(
+        card_name="Mewtwo",
+        card_number="10",
+        set_name="Base Set",
+        grading_company=GradingCompany.BGS,
+        grade="9.5",
+        cert_number="11223344",
+        price=800.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/base1/10.png",
+        description="Mewtwo Holographique Base Set, gradé BGS 9.5 Gem Mint.",
+    ),
+    GradedCard(
+        card_name="Tortank",
+        card_number="2",
+        set_name="Base Set",
+        grading_company=GradingCompany.PSA,
+        grade="8",
+        cert_number="55667788",
+        price=350.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/base1/2.png",
+        description="Tortank Holographique Base Set, gradé PSA 8 Near Mint-Mint.",
+    ),
+    GradedCard(
+        card_name="Dracaufeu ex",
+        card_number="6",
+        set_name="Écarlate et Violet — 151",
+        grading_company=GradingCompany.PSA,
+        grade="10",
+        cert_number="99887766",
+        price=2500.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/sv3pt5/6.png",
+        description="Dracaufeu ex de la série 151, double rare. Gradé PSA 10 Gem Mint.",
+    ),
+    GradedCard(
+        card_name="Lugia",
+        card_number="9",
+        set_name="Neo Genesis",
+        grading_company=GradingCompany.CGC,
+        grade="9",
+        cert_number="44332211",
+        price=950.00,
+        stock=1,
+        image_url="https://images.pokemontcg.io/neo1/9.png",
+        description="Lugia Holographique Neo Genesis 2000, gradé CGC 9 Mint.",
+    ),
+]
+
 USERS = [
     User(email=settings.SEED_ADMIN_EMAIL, username="admin", hashed_password=hash_password(settings.SEED_ADMIN_PASSWORD), role=UserRole.ADMIN, is_verified=True, is_active=True),
 ]
@@ -52,6 +128,20 @@ async def seed():
         for t in new_tournaments:
             session.add(t)
 
+        # Graded cards — skip if cert_number already exists (or card_name+set_name if no cert)
+        existing_certs = (await session.execute(select(GradedCard.cert_number))).scalars().all()
+        existing_gc_keys = (await session.execute(
+            select(GradedCard.card_name, GradedCard.set_name, GradedCard.grading_company, GradedCard.grade)
+        )).all()
+        existing_gc_keys_set = {(r[0], r[1], r[2], r[3]) for r in existing_gc_keys}
+        new_graded_cards = [
+            gc for gc in GRADED_CARDS
+            if gc.cert_number not in existing_certs
+            and (gc.card_name, gc.set_name, gc.grading_company, gc.grade) not in existing_gc_keys_set
+        ]
+        for gc in new_graded_cards:
+            session.add(gc)
+
         # Users — skip if email already exists
         existing_emails = (await session.execute(select(User.email))).scalars().all()
         new_users = [u for u in USERS if u.email not in existing_emails]
@@ -60,7 +150,7 @@ async def seed():
 
         await session.commit()
 
-    print(f"Seeded {len(new_products)} products, {len(new_tournaments)} tournaments, {len(new_users)} users.")
+    print(f"Seeded {len(new_products)} products, {len(new_tournaments)} tournaments, {len(new_graded_cards)} graded cards, {len(new_users)} users.")
     if new_users:
         print(f"Admin user created: {settings.SEED_ADMIN_EMAIL}")
 
