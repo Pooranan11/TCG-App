@@ -34,10 +34,6 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
         ),
       })
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-        ?? 'Erreur lors de l\'inscription'
-      set({ error: msg })
       throw err
     }
   },

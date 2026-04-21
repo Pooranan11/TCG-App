@@ -3,18 +3,8 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useTournamentStore } from '../store/tournamentStore'
 import type { Tournament } from '../types'
-
-const STATUS_LABELS: Record<string, string> = {
-  UPCOMING: 'Inscriptions ouvertes',
-  ONGOING: 'En cours',
-  COMPLETED: 'Termine',
-}
-
-const STATUS_STYLE: Record<string, string> = {
-  UPCOMING: 'bg-green-500/20 text-green-400',
-  ONGOING: 'bg-yellow/20 text-yellow-dark',
-  COMPLETED: 'bg-white/10 text-white/40',
-}
+import { getApiError } from '../utils/api'
+import { TOURNAMENT_STATUS_LABELS, TOURNAMENT_STATUS_STYLE } from '../utils/labels'
 
 interface Props {
   tournament: Tournament
@@ -36,8 +26,7 @@ export default function TournamentCard({ tournament }: Props) {
       await register(tournament.id)
       setMsg('Inscription confirmee !')
     } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setMsg(detail ?? "Erreur lors de l'inscription.")
+      setMsg(getApiError(err, "Erreur lors de l'inscription."))
     } finally {
       setLoading(false)
     }
@@ -50,8 +39,8 @@ export default function TournamentCard({ tournament }: Props) {
         <span className="font-condensed font-black text-[0.8rem] tracking-[0.12em] uppercase text-yellow">
           {tournament.game}
         </span>
-        <span className={`font-condensed font-bold text-[0.6rem] tracking-[0.15em] uppercase px-2 py-0.5 ${STATUS_STYLE[tournament.status]}`}>
-          {STATUS_LABELS[tournament.status]}
+        <span className={`font-condensed font-bold text-[0.6rem] tracking-[0.15em] uppercase px-2 py-0.5 ${TOURNAMENT_STATUS_STYLE[tournament.status]}`}>
+          {TOURNAMENT_STATUS_LABELS[tournament.status]}
         </span>
       </div>
 

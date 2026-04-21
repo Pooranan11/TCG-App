@@ -2,18 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchMyOrders } from '../api/orders'
 import type { Order } from '../types'
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'En attente',
-  PAID: 'Payée',
-  CANCELLED: 'Annulée',
-}
-
-const STATUS_STYLE: Record<string, string> = {
-  PENDING: 'bg-yellow/20 text-yellow-dark',
-  PAID: 'bg-green-500/20 text-green-600',
-  CANCELLED: 'bg-red-500/20 text-red-500',
-}
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLE } from '../utils/labels'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -70,9 +59,9 @@ export default function OrdersPage() {
               </div>
               <div className="flex items-center gap-4">
                 <span
-                  className={`font-condensed font-bold text-[0.65rem] tracking-[0.15em] uppercase px-2 py-0.5 rounded ${STATUS_STYLE[order.status]}`}
+                  className={`font-condensed font-bold text-[0.65rem] tracking-[0.15em] uppercase px-2 py-0.5 rounded ${ORDER_STATUS_STYLE[order.status]}`}
                 >
-                  {STATUS_LABELS[order.status]}
+                  {ORDER_STATUS_LABELS[order.status]}
                 </span>
                 <span className="font-condensed font-black text-xl text-navy">
                   {order.total.toFixed(2)} €

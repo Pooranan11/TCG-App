@@ -20,5 +20,5 @@ export const verifyEmail = (token: string): Promise<{ message: string }> =>
 export const forgotPassword = (email: string): Promise<{ message: string }> =>
   client.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data)
 
-export const resetPassword = (token: string, new_password: string): Promise<{ message: string }> =>
-  client.post<{ message: string }>('/auth/reset-password', { token, new_password }).then((r) => r.data)
+export const resetPassword = (token: string, newPassword: string): Promise<{ message: string }> =>
+  client.post<{ message: string }>('/auth/reset-password', { token, new_password: newPassword }).then((r) => r.data)

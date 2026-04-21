@@ -3,12 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { fetchProduct } from '../api/products'
 import { useCartStore } from '../store/cartStore'
 import type { Product } from '../types'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  TCG: 'Jeu de cartes',
-  BOARD_GAME: 'Jeu de société',
-  ACCESSORY: 'Accessoire',
-}
+import { CATEGORY_LABELS } from '../utils/labels'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()

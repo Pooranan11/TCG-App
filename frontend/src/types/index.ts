@@ -32,6 +32,7 @@ export interface User {
   email: string
   username: string
   role: UserRole
+  is_verified: boolean
   created_at: string
 }
 

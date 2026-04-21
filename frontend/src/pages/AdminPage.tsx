@@ -3,6 +3,9 @@ import { useAuthStore } from '../store/authStore'
 import { useProductStore } from '../store/productStore'
 import { useTournamentStore } from '../store/tournamentStore'
 import type { Product, Tournament, ProductCategory, TournamentStatus } from '../types'
+import { createProduct, updateProduct, deleteProduct } from '../api/products'
+import { createTournament, updateTournament, deleteTournament } from '../api/tournaments'
+import { fetchAdminUsers, patchAdminUser, type AdminUser } from '../api/admin'
 import client from '../api/client'
 
 // ─── TCG card search ─────────────────────────────────────────────────────────
@@ -174,7 +177,7 @@ function ProductForm({
   })
   const [saving, setSaving] = useState(false)
 
-  const set = (k: keyof typeof EMPTY_PRODUCT, v: string | number) =>
+  const setField = (k: keyof typeof EMPTY_PRODUCT, v: string | number) =>
     setForm((f) => ({ ...f, [k]: v }))
 
   const submit = async (e: React.FormEvent) => {
@@ -187,10 +190,10 @@ function ProductForm({
   return (
     <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <Field label="Nom" required>
-        <input value={form.name} onChange={(e) => set('name', e.target.value)} required />
+        <input value={form.name} onChange={(e) => setField('name', e.target.value)} required />
       </Field>
       <Field label="Catégorie">
-        <select value={form.category} onChange={(e) => set('category', e.target.value as ProductCategory)}>
+        <select value={form.category} onChange={(e) => setField('category', e.target.value as ProductCategory)}>
           <option value="TCG">TCG</option>
           <option value="BOARD_GAME">Jeu de société</option>
           <option value="ACCESSORY">Accessoire</option>
@@ -198,19 +201,19 @@ function ProductForm({
       </Field>
       <Field label="Prix (€)" required>
         <input type="number" step="0.01" min="0" value={form.price}
-          onChange={(e) => set('price', parseFloat(e.target.value) || 0)} required />
+          onChange={(e) => setField('price', parseFloat(e.target.value) || 0)} required />
       </Field>
       <Field label="Stock">
         <input type="number" min="0" value={form.stock}
-          onChange={(e) => set('stock', parseInt(e.target.value) || 0)} />
+          onChange={(e) => setField('stock', parseInt(e.target.value) || 0)} />
       </Field>
       <ImagePicker
         value={form.image_url}
-        onChange={(url) => set('image_url', url)}
+        onChange={(url) => setField('image_url', url)}
       />
       <Field label="Description" className="sm:col-span-2">
         <textarea rows={3} value={form.description ?? ''}
-          onChange={(e) => set('description', e.target.value)} />
+          onChange={(e) => setField('description', e.target.value)} />
       </Field>
       <div className="sm:col-span-2 flex gap-3 justify-end">
         <button type="button" onClick={onCancel} className="btn-secondary">Annuler</button>
@@ -256,24 +259,24 @@ function TournamentForm({
   return (
     <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <Field label="Nom" required>
-        <input value={form.name} onChange={(e) => set('name', e.target.value)} required />
+        <input value={form.name} onChange={(e) => setField('name', e.target.value)} required />
       </Field>
       <Field label="Jeu" required>
-        <input value={form.game} onChange={(e) => set('game', e.target.value)} required />
+        <input value={form.game} onChange={(e) => setField('game', e.target.value)} required />
       </Field>
       <Field label="Date">
-        <input type="datetime-local" value={form.date} onChange={(e) => set('date', e.target.value)} />
+        <input type="datetime-local" value={form.date} onChange={(e) => setField('date', e.target.value)} />
       </Field>
       <Field label="Max joueurs">
         <input type="number" min="2" value={form.max_players}
-          onChange={(e) => set('max_players', parseInt(e.target.value) || 0)} />
+          onChange={(e) => setField('max_players', parseInt(e.target.value) || 0)} />
       </Field>
       <Field label="Frais d'entrée (€)">
         <input type="number" step="0.01" min="0" value={form.entry_fee}
-          onChange={(e) => set('entry_fee', parseFloat(e.target.value) || 0)} />
+          onChange={(e) => setField('entry_fee', parseFloat(e.target.value) || 0)} />
       </Field>
       <Field label="Statut">
-        <select value={form.status} onChange={(e) => set('status', e.target.value as TournamentStatus)}>
+        <select value={form.status} onChange={(e) => setField('status', e.target.value as TournamentStatus)}>
           <option value="UPCOMING">À venir</option>
           <option value="ONGOING">En cours</option>
           <option value="COMPLETED">Terminé</option>
@@ -308,16 +311,6 @@ function Field({ label, required, className, children }: {
 
 type Tab = 'products' | 'tournaments' | 'users'
 
-interface AdminUser {
-  id: number
-  email: string
-  username: string
-  role: string
-  is_verified: boolean
-  is_active: boolean
-  created_at: string
-}
-
 export default function AdminPage() {
   const { user } = useAuthStore()
   const { products, load: loadProducts } = useProductStore()
@@ -328,14 +321,15 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null | 'new'>(null)
   const [editingTournament, setEditingTournament] = useState<Tournament | null | 'new'>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
-  const [error, setError] = useState('')
+  const [productError, setProductError] = useState('')
+  const [tournamentError, setTournamentError] = useState('')
+  const [usersError, setUsersError] = useState('')
 
   const loadUsers = async () => {
     try {
-      const res = await client.get<AdminUser[]>('/admin/users')
-      setUsers(res.data)
+      setUsers(await fetchAdminUsers())
     } catch {
-      setError('Impossible de charger les utilisateurs.')
+      setUsersError('Impossible de charger les utilisateurs.')
     }
   }
 
@@ -344,71 +338,71 @@ export default function AdminPage() {
 
   // Products CRUD
   const saveProduct = async (data: typeof EMPTY_PRODUCT) => {
-    setError('')
+    setProductError('')
     try {
       if (editingProduct === 'new') {
-        await client.post('/products', data)
+        await createProduct(data)
       } else if (editingProduct) {
-        await client.put(`/products/${editingProduct.id}`, data)
+        await updateProduct(editingProduct.id, data)
       }
       await loadProducts()
       setEditingProduct(null)
     } catch {
-      setError('Une erreur est survenue.')
+      setProductError('Une erreur est survenue.')
     }
   }
 
-  const deleteProduct = async (id: number) => {
+  const handleDeleteProduct = async (id: number) => {
     if (!confirm('Supprimer ce produit ?')) return
     try {
-      await client.delete(`/products/${id}`)
+      await deleteProduct(id)
       await loadProducts()
     } catch {
-      setError('Impossible de supprimer.')
+      setProductError('Impossible de supprimer.')
     }
   }
 
   // Tournaments CRUD
   const saveTournament = async (data: typeof EMPTY_TOURNAMENT) => {
-    setError('')
+    setTournamentError('')
     try {
       if (editingTournament === 'new') {
-        await client.post('/tournaments', data)
+        await createTournament(data)
       } else if (editingTournament) {
-        await client.put(`/tournaments/${editingTournament.id}`, data)
+        await updateTournament(editingTournament.id, data)
       }
       await loadTournaments()
       setEditingTournament(null)
     } catch {
-      setError('Une erreur est survenue.')
+      setTournamentError('Une erreur est survenue.')
     }
   }
 
-  const deleteTournament = async (id: number) => {
+  const handleDeleteTournament = async (id: number) => {
     if (!confirm('Supprimer ce tournoi ?')) return
     try {
-      await client.delete(`/tournaments/${id}`)
+      await deleteTournament(id)
       await loadTournaments()
     } catch {
-      setError('Impossible de supprimer.')
+      setTournamentError('Impossible de supprimer.')
     }
   }
 
   const toggleUserActive = async (u: AdminUser) => {
     try {
-      await client.patch(`/admin/users/${u.id}`, { is_active: !u.is_active })
+      await patchAdminUser(u.id, { is_active: !u.is_active })
       await loadUsers()
     } catch {
-      setError('Impossible de modifier l\'utilisateur.')
+      setUsersError("Impossible de modifier l'utilisateur.")
     }
   }
 
   const changeUserRole = async (u: AdminUser, role: string) => {
     try {
-      await client.patch(`/admin/users/${u.id}`, { role })
+      await patchAdminUser(u.id, { role })
       await loadUsers()
     } catch {
-      setError('Impossible de modifier le rôle.')
+      setUsersError('Impossible de modifier le rôle.')
     }
   }
 
@@ -476,13 +470,10 @@ export default function AdminPage() {
           </div>
         )}
 
-        {error && (
-          <p className="text-red-400 text-sm mb-4">{error}</p>
-        )}
-
         {/* Products tab */}
         {tab === 'products' && (
           <div>
+            {productError && <p className="text-red-400 text-sm mb-4">{productError}</p>}
             {editingProduct ? (
               <div className="bg-navy-light border border-white/10 rounded-lg p-6 mb-6">
                 <h2 className="font-condensed font-black text-lg uppercase tracking-wide text-white mb-4">
@@ -531,7 +522,7 @@ export default function AdminPage() {
                           <button onClick={() => setEditingProduct(p)} className="text-white/40 hover:text-white text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
                             Modifier
                           </button>
-                          <button onClick={() => deleteProduct(p.id)} className="text-red-400/60 hover:text-red-400 text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
+                          <button onClick={() => handleDeleteProduct(p.id)} className="text-red-400/60 hover:text-red-400 text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
                             Supprimer
                           </button>
                         </div>
@@ -550,6 +541,7 @@ export default function AdminPage() {
         {/* Users tab */}
         {tab === 'users' && (
           <div className="overflow-x-auto">
+            {usersError && <p className="text-red-400 text-sm mb-4">{usersError}</p>}
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/10">
@@ -619,6 +611,7 @@ export default function AdminPage() {
         {/* Tournaments tab */}
         {tab === 'tournaments' && (
           <div>
+            {tournamentError && <p className="text-red-400 text-sm mb-4">{tournamentError}</p>}
             {editingTournament ? (
               <div className="bg-navy-light border border-white/10 rounded-lg p-6 mb-6">
                 <h2 className="font-condensed font-black text-lg uppercase tracking-wide text-white mb-4">
@@ -672,7 +665,7 @@ export default function AdminPage() {
                           <button onClick={() => setEditingTournament(t)} className="text-white/40 hover:text-white text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
                             Modifier
                           </button>
-                          <button onClick={() => deleteTournament(t.id)} className="text-red-400/60 hover:text-red-400 text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
+                          <button onClick={() => handleDeleteTournament(t.id)} className="text-red-400/60 hover:text-red-400 text-xs font-condensed font-bold uppercase tracking-wider transition-colors">
                             Supprimer
                           </button>
                         </div>

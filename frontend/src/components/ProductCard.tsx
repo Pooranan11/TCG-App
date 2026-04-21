@@ -1,11 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Product } from '../types'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  TCG: 'Jeu de cartes',
-  BOARD_GAME: 'Jeu de société',
-  ACCESSORY: 'Accessoire',
-}
+import { CATEGORY_LABELS } from '../utils/labels'
 
 const CATEGORY_BG: Record<string, string> = {
   TCG: 'bg-gradient-to-br from-blue-100 to-blue-200',
