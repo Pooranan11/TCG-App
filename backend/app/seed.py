@@ -34,7 +34,7 @@ TOURNAMENTS = [
 ]
 
 USERS = [
-    User(email=settings.SEED_ADMIN_EMAIL, username="admin", hashed_password=hash_password(settings.SEED_ADMIN_PASSWORD), role=UserRole.ADMIN),
+    User(email=settings.SEED_ADMIN_EMAIL, username="admin", hashed_password=hash_password(settings.SEED_ADMIN_PASSWORD), role=UserRole.ADMIN, is_verified=True, is_active=True),
 ]
 
 
