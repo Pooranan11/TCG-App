@@ -26,7 +26,7 @@ async function searchTcgCards(query: string): Promise<CardResult[]> {
       ? `name:"${query}"`
       : `name:${query}*`
     const res = await fetch(
-      `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(nameQuery)}&pageSize=20&select=id,name,images`
+      `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(nameQuery)}&pageSize=24&select=id,name,images`
     )
     const json = await res.json()
     return (json.data ?? []).map((c: { id: string; name: string; images: { small: string } }) => ({
@@ -51,10 +51,16 @@ function ImagePicker({ value, onChange }: {
   const [searching, setSearching] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [page, setPage] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const PAGE_SIZE = 8
+  const totalPages = Math.ceil(results.length / PAGE_SIZE)
+  const pageResults = results.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const handleSearch = async () => {
     setSearching(true)
+    setPage(0)
     const cards = await searchTcgCards(search)
     setResults(cards)
     setSearching(false)
@@ -124,13 +130,31 @@ function ImagePicker({ value, onChange }: {
             </button>
           </div>
           {results.length > 0 && (
-            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 max-h-64 overflow-y-auto">
-              {results.map((c) => (
-                <button key={c.id} type="button" onClick={() => { onChange(c.image); setResults([]) }}
-                  className={`rounded border-2 overflow-hidden transition-all ${value === c.image ? 'border-yellow' : 'border-white/10 hover:border-yellow/50'}`}>
-                  <img src={c.image} alt={c.name} className="w-full object-contain" />
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page === 0}
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded border border-white/15 text-white/50 hover:text-white hover:border-white/40 disabled:opacity-20 transition-colors"
+              >
+                ‹
+              </button>
+              <div className="grid grid-cols-8 gap-2 flex-1">
+                {pageResults.map((c) => (
+                  <button key={c.id} type="button" onClick={() => { onChange(c.image); setResults([]) }}
+                    className={`rounded border-2 overflow-hidden transition-all ${value === c.image ? 'border-yellow' : 'border-white/10 hover:border-yellow/50'}`}>
+                    <img src={c.image} alt={c.name} className="w-full object-contain" />
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages - 1}
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded border border-white/15 text-white/50 hover:text-white hover:border-white/40 disabled:opacity-20 transition-colors"
+              >
+                ›
+              </button>
             </div>
           )}
         </div>
