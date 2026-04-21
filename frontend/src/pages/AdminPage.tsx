@@ -23,7 +23,7 @@ async function searchTcgCards(query: string): Promise<CardResult[]> {
   if (!query.trim()) return []
   try {
     const res = await fetch(
-      `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(query)}*&pageSize=6&select=id,name,images`
+      `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(query)}*&pageSize=20&select=id,name,images`
     )
     const json = await res.json()
     return (json.data ?? []).map((c: { id: string; name: string; images: { small: string } }) => ({
@@ -121,7 +121,7 @@ function ImagePicker({ value, onChange }: {
             </button>
           </div>
           {results.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 max-h-64 overflow-y-auto">
               {results.map((c) => (
                 <button key={c.id} type="button" onClick={() => { onChange(c.image); setResults([]) }}
                   className={`rounded border-2 overflow-hidden transition-all ${value === c.image ? 'border-yellow' : 'border-white/10 hover:border-yellow/50'}`}>
