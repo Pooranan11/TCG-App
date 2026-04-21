@@ -28,7 +28,6 @@ async def send_email(to: str, subject: str, html: str) -> None:
             username=settings.SMTP_USER,
             password=settings.SMTP_PASSWORD,
             start_tls=settings.SMTP_TLS,
-            validate_certs=settings.SMTP_TLS,
         )
     except Exception as exc:
         logger.error("SMTP error sending to %s: %s", to, exc)
