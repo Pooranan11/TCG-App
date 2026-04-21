@@ -22,8 +22,11 @@ type CardResult = { id: string; name: string; image: string }
 async function searchTcgCards(query: string): Promise<CardResult[]> {
   if (!query.trim()) return []
   try {
+    const nameQuery = query.includes(' ')
+      ? `name:"${query}"`
+      : `name:${query}*`
     const res = await fetch(
-      `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(query)}*&pageSize=20&select=id,name,images`
+      `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(nameQuery)}&pageSize=20&select=id,name,images`
     )
     const json = await res.json()
     return (json.data ?? []).map((c: { id: string; name: string; images: { small: string } }) => ({
