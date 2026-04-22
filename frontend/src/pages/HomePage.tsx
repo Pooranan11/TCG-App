@@ -6,6 +6,7 @@ import SectionHeader from '../components/SectionHeader'
 import { useProductStore } from '../store/productStore'
 import { useTournamentStore } from '../store/tournamentStore'
 import { useGradedCardStore } from '../store/gradedCardStore'
+import GradedCardCarousel from '../components/GradedCardCarousel'
 
 const CATEGORIES = [
   {
@@ -91,54 +92,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 3D rotating carousel — hidden on small screens */}
-          <div className="hidden lg:block relative overflow-hidden" style={{ width: '420px', height: '340px' }}>
-            <style>{`
-              @keyframes rotating {
-                from { transform: perspective(1000px) rotateX(-20deg) rotateY(0turn); }
-                to   { transform: perspective(1000px) rotateX(-20deg) rotateY(1turn); }
-              }
-            `}</style>
-            <div
-              style={{
-                position: 'absolute',
-                width: '120px',
-                height: '168px',
-                top: '22%',
-                left: 'calc(50% - 60px)',
-                transformStyle: 'preserve-3d',
-                animation: 'rotating 18s linear infinite',
-              }}
-            >
-              {(gradedCards.length > 0 ? gradedCards.slice(0, 6) : Array(6).fill(null)).map((card, i) => (
-                <div
-                  key={i}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    border: '2px solid rgba(245,200,0,0.45)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                    transform: `rotateY(${(360 / 6) * i}deg) translateZ(240px)`,
-                  }}
-                >
-                  {card?.image_url ? (
-                    <img
-                      src={card.image_url}
-                      alt={card.card_name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%', height: '100%',
-                      background: 'radial-gradient(circle, rgba(245,200,0,0.08) 0%, rgba(26,43,94,0.9) 100%)',
-                    }} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <GradedCardCarousel cards={gradedCards} />
         </div>
 
         {/* Stats — full width */}

@@ -12,6 +12,11 @@
   }
 }
 
+@keyframes rotating {
+  from { transform: perspective(1000px) rotateX(-20deg) rotateY(0turn); }
+  to   { transform: perspective(1000px) rotateX(-20deg) rotateY(1turn); }
+}
+
 @layer components {
   .btn-primary {
     @apply font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy px-5 py-2.5 hover:bg-yellow-light transition-colors disabled:opacity-60;
