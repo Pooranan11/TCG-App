@@ -91,49 +91,52 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Floating graded cards — hidden on small screens */}
-          <div className="hidden lg:flex items-center justify-center">
+          {/* 3D rotating carousel — hidden on small screens */}
+          <div className="hidden lg:block relative overflow-hidden" style={{ width: '420px', height: '340px' }}>
             <style>{`
-              @keyframes float {
-                0%, 100% { transform: translateY(0px) rotate(var(--r)); }
-                50%       { transform: translateY(-14px) rotate(var(--r)); }
+              @keyframes rotating {
+                from { transform: perspective(1000px) rotateX(-20deg) rotateY(0turn); }
+                to   { transform: perspective(1000px) rotateX(-20deg) rotateY(1turn); }
               }
             `}</style>
-            <div className="relative w-[400px] h-[375px]">
-              {gradedCards.slice(0, 6).map((card, i) => {
-                const cfg = [
-                  { top: 0,   left: 0,   r: '-5deg', delay: '0s',    dur: '3.2s', z: 3 },
-                  { top: 0,   left: 138, r: '1deg',  delay: '0.5s',  dur: '2.9s', z: 5 },
-                  { top: 0,   left: 272, r: '6deg',  delay: '1.0s',  dur: '3.4s', z: 3 },
-                  { top: 193, left: 16,  r: '4deg',  delay: '0.3s',  dur: '3.1s', z: 2 },
-                  { top: 193, left: 150, r: '-3deg', delay: '0.8s',  dur: '2.8s', z: 4 },
-                  { top: 193, left: 280, r: '-6deg', delay: '1.3s',  dur: '3.5s', z: 2 },
-                ][i]
-                return (
-                  <div
-                    key={card.id}
-                    className="absolute w-[128px] h-[179px] rounded-xl overflow-hidden border-2 border-yellow/30"
-                    style={{
-                      top: cfg.top, left: cfg.left, zIndex: cfg.z,
-                      '--r': cfg.r,
-                      animation: `float ${cfg.dur} ease-in-out ${cfg.delay} infinite`,
-                      boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,200,0,0.1)',
-                    } as React.CSSProperties}
-                  >
-                    {card.image_url ? (
-                      <img src={card.image_url} alt={card.card_name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-navy-light to-navy-dark flex flex-col items-center justify-center gap-2 p-2">
-                        <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
-                          <rect x="4" y="6" width="28" height="32" rx="4" fill="rgba(245,200,0,0.12)" />
-                          <rect x="8" y="10" width="20" height="14" rx="2" fill="rgba(245,200,0,0.18)" />
-                        </svg>
-                        <span className="font-condensed font-bold text-[0.45rem] tracking-wide uppercase text-white/40 text-center">{card.card_name}</span>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+            <div
+              style={{
+                position: 'absolute',
+                width: '120px',
+                height: '168px',
+                top: '22%',
+                left: 'calc(50% - 60px)',
+                transformStyle: 'preserve-3d',
+                animation: 'rotating 18s linear infinite',
+              }}
+            >
+              {(gradedCards.length > 0 ? gradedCards.slice(0, 6) : Array(6).fill(null)).map((card, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '2px solid rgba(245,200,0,0.45)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                    transform: `rotateY(${(360 / 6) * i}deg) translateZ(240px)`,
+                  }}
+                >
+                  {card?.image_url ? (
+                    <img
+                      src={card.image_url}
+                      alt={card.card_name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%', height: '100%',
+                      background: 'radial-gradient(circle, rgba(245,200,0,0.08) 0%, rgba(26,43,94,0.9) 100%)',
+                    }} />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
