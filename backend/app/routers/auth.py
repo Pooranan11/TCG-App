@@ -114,9 +114,9 @@ async def verify_email(token: str = Query(...), db: AsyncSession = Depends(get_d
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable")
 
-    user.is_verified = True
-    await db.commit()
-    await redis_client.delete(f"verify:{token}")
+    if not user.is_verified:
+        user.is_verified = True
+        await db.commit()
 
     return {"message": "Email vérifié avec succès. Vous pouvez maintenant vous connecter."}
 
