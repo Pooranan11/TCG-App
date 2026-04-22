@@ -12,14 +12,17 @@
   }
 }
 
-@keyframes card-float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-16px); }
+@keyframes carousel-rotate {
+  0%   { transform: perspective(1000px) rotateX(-22deg) rotateY(0deg); }
+  25%  { transform: perspective(1000px) rotateX(-15deg) rotateY(90deg); }
+  50%  { transform: perspective(1000px) rotateX(-22deg) rotateY(180deg); }
+  75%  { transform: perspective(1000px) rotateX(-15deg) rotateY(270deg); }
+  100% { transform: perspective(1000px) rotateX(-22deg) rotateY(360deg); }
 }
 
-@keyframes card-shimmer {
-  0%, 100% { opacity: 0; }
-  50%       { opacity: 1; }
+@keyframes card-breathe {
+  0%, 100% { transform: scale(1);    filter: brightness(0.85); }
+  50%       { transform: scale(1.06); filter: brightness(1.12); }
 }
 
 @layer components {
