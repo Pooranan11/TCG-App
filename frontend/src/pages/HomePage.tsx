@@ -55,13 +55,50 @@ export default function HomePage() {
       <section className="bg-navy relative overflow-hidden">
         {/* Decorations */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          {/* Espace — nébuleuses + champ d'étoiles */}
           <div className="absolute inset-0" style={{
-            background: 'radial-gradient(circle 600px at 75% 50%, rgba(245,200,0,0.07) 0%, transparent 70%), repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px)'
+            background: [
+              // nébuleuse rouge/orange haut-droite
+              'radial-gradient(ellipse 55% 45% at 80% 20%, rgba(220,80,60,0.1) 0%, transparent 70%)',
+              // nébuleuse bleue bas-gauche
+              'radial-gradient(ellipse 65% 50% at 10% 80%, rgba(40,80,220,0.22) 0%, transparent 70%)',
+              // nébuleuse verte sous "Chasseur de Jeux"
+              'radial-gradient(ellipse 45% 55% at 28% 60%, rgba(40,200,100,0.1) 0%, transparent 65%)',
+              // halo jaune carousel
+              'radial-gradient(circle 600px at 75% 50%, rgba(245,200,0,0.07) 0%, transparent 70%)',
+              // étoiles brillantes (grosses)
+              'radial-gradient(2px 2px at  8% 12%, rgba(255,255,255,0.9) 0%, transparent 100%)',
+              'radial-gradient(2px 2px at 43% 8%,  rgba(255,255,255,0.85) 0%, transparent 100%)',
+              'radial-gradient(2px 2px at 91% 22%, rgba(255,255,255,0.9) 0%, transparent 100%)',
+              'radial-gradient(2px 2px at 63% 78%, rgba(255,255,255,0.8) 0%, transparent 100%)',
+              'radial-gradient(2px 2px at 18% 91%, rgba(255,255,255,0.85) 0%, transparent 100%)',
+              'radial-gradient(2.5px 2.5px at 77% 6%, rgba(255,255,240,0.95) 0%, transparent 100%)',
+              // étoiles moyennes
+              'radial-gradient(1.5px 1.5px at 22% 35%, rgba(255,255,255,0.7) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 37% 58%, rgba(255,255,255,0.65) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 55% 22%, rgba(255,255,255,0.75) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 70% 44%, rgba(255,255,255,0.6) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 85% 68%, rgba(255,255,255,0.7) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 14% 55%, rgba(255,255,255,0.65) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 48% 88%, rgba(255,255,255,0.6) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 95% 50%, rgba(255,255,255,0.7) 0%, transparent 100%)',
+              // petites étoiles (nombreuses)
+              'radial-gradient(1px 1px at  5% 42%, rgba(255,255,255,0.5) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 16% 76%, rgba(255,255,255,0.45) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 29% 19%, rgba(255,255,255,0.55) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 33% 83%, rgba(255,255,255,0.4) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 50% 47%, rgba(255,255,255,0.5) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 58% 95%, rgba(255,255,255,0.45) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 72% 28%, rgba(255,255,255,0.55) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 81% 85%, rgba(255,255,255,0.4) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 88% 14%, rgba(255,255,255,0.5) 0%, transparent 100%)',
+              'radial-gradient(1px 1px at 97% 72%, rgba(255,255,255,0.45) 0%, transparent 100%)',
+              // étoiles teintées (bleues/jaunes)
+              'radial-gradient(1.5px 1.5px at 25% 65%, rgba(180,210,255,0.8) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 60% 38%, rgba(255,240,180,0.8) 0%, transparent 100%)',
+              'radial-gradient(1.5px 1.5px at 40% 72%, rgba(180,210,255,0.75) 0%, transparent 100%)',
+            ].join(', ')
           }} />
-          <div className="absolute rounded-full border-[40px] border-yellow/[0.06] hidden lg:block"
-            style={{ width: 480, height: 480, right: -80, top: '50%', transform: 'translateY(-50%)' }} />
-          <div className="absolute rounded-full border-[2px] border-yellow/[0.1] hidden lg:block"
-            style={{ width: 640, height: 640, right: -140, top: '50%', transform: 'translateY(-50%)' }} />
         </div>
 
         <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-24
@@ -76,9 +113,9 @@ export default function HomePage() {
               Chasseur<br />
               <span className="text-yellow">de Jeux</span>
             </h1>
-            <p className="text-white/60 font-light leading-relaxed mb-6 sm:mb-8 max-w-lg"
+            <p className="text-white/60 font-condensed font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg"
               style={{ fontSize: 'clamp(0.9rem, 1.5vw, 1.05rem)' }}>
-              Votre boutique specialisee en jeux de cartes a collectionner, jeux de societe et tournois locaux.
+              Boosters, decks, tournois, bref tout ce qu'il te faut pour jouer, collectionner et dominer
             </p>
             <div className="flex gap-3 flex-wrap">
               <Link to="/products"
