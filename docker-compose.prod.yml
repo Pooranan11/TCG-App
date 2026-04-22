@@ -47,14 +47,28 @@ services:
   nginx:
     image: ghcr.io/pooranan11/tcg-nginx:latest
     restart: always
+    environment:
+      DOMAIN: demo.pooranan.com
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - uploads:/uploads
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
     depends_on:
       backend:
         condition: service_healthy
 
+  certbot:
+    image: certbot/certbot
+    restart: "no"
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+
 volumes:
   pgdata:
   uploads:
+  certbot-conf:
+  certbot-www:
