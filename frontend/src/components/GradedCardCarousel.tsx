@@ -13,6 +13,8 @@ export default function GradedCardCarousel({ cards }: Props) {
 
   return (
     <div className="hidden lg:flex items-center justify-center" style={{ width: '420px', height: '340px' }}>
+      {/* inclinaison statique du plan */}
+      <div style={{ transformStyle: 'preserve-3d', transform: 'rotateX(-20deg) rotateZ(-8deg)' }}>
       <div
         className="carousel-3d"
         style={{
@@ -51,6 +53,7 @@ export default function GradedCardCarousel({ cards }: Props) {
             />
           </div>
         ))}
+      </div>
       </div>
     </div>
   )
