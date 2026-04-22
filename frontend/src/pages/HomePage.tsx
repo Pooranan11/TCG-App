@@ -5,6 +5,7 @@ import TournamentCard from '../components/TournamentCard'
 import SectionHeader from '../components/SectionHeader'
 import { useProductStore } from '../store/productStore'
 import { useTournamentStore } from '../store/tournamentStore'
+import { useGradedCardStore } from '../store/gradedCardStore'
 
 const CATEGORIES = [
   {
@@ -36,11 +37,13 @@ const STATS = [
 export default function HomePage() {
   const { products, loading: pLoading, load: loadProducts } = useProductStore()
   const { tournaments, loading: tLoading, load: loadTournaments } = useTournamentStore()
+  const { cards: gradedCards, load: loadGradedCards } = useGradedCardStore()
 
   useEffect(() => {
     loadProducts()
     loadTournaments()
-  }, [loadProducts, loadTournaments])
+    loadGradedCards()
+  }, [loadProducts, loadTournaments, loadGradedCards])
 
   const featured = products.slice(0, 4)
   const upcoming = tournaments.filter((t) => t.status === 'UPCOMING').slice(0, 3)
@@ -88,34 +91,49 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Card stack — hidden on small screens */}
-          <div className="hidden lg:flex items-center justify-center h-[280px] xl:h-[320px]">
-            <div className="relative w-[180px] h-[250px] group">
-              {[
-                { rotate: '-10deg', tx: '-32px', ty: '10px', z: 1, border: 'rgba(245,200,0,0.3)', bg: 'linear-gradient(145deg,#1a2b5e,#243577)' },
-                { rotate: '0deg',   tx: '0px',   ty: '0px',  z: 3, border: '#F5C800',             bg: 'linear-gradient(145deg,#0d1a3e,#1a2b5e)', glow: true },
-                { rotate: '9deg',   tx: '32px',  ty: '10px', z: 2, border: 'rgba(245,200,0,0.3)', bg: 'linear-gradient(145deg,#1a2b5e,#243577)' },
-              ].map((card, i) => (
-                <div key={i} className="absolute w-[165px] h-[230px] rounded-xl flex flex-col items-center justify-center gap-3 border-2 transition-transform duration-300"
-                  style={{
-                    transform: `rotate(${card.rotate}) translate(${card.tx}, ${card.ty})`,
-                    zIndex: card.z,
-                    borderColor: card.border,
-                    background: card.bg,
-                    boxShadow: card.glow ? '0 0 0 1px rgba(245,200,0,0.2), 0 16px 48px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.4)',
-                  }}>
-                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-                    <rect x="4" y="6" width="28" height="32" rx="4" fill="rgba(245,200,0,0.12)" />
-                    <rect x="8" y="10" width="20" height="14" rx="2" fill="rgba(245,200,0,0.18)" />
-                    <rect x="8" y="28" width="12" height="3" rx="1" fill="rgba(245,200,0,0.25)" />
-                    <rect x="8" y="33" width="8" height="2" rx="1" fill="rgba(245,200,0,0.15)" />
-                  </svg>
-                  <div className="w-9 h-0.5 bg-yellow opacity-50" />
-                  <span className="font-condensed font-bold text-[0.48rem] tracking-[0.2em] uppercase text-white/40 text-center px-2">
-                    {i === 0 ? 'Jeux de cartes' : i === 1 ? 'Chasseur de Jeux' : 'Collection'}
-                  </span>
-                </div>
-              ))}
+          {/* Floating graded cards — hidden on small screens */}
+          <div className="hidden lg:flex items-center justify-center">
+            <style>{`
+              @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(var(--r)); }
+                50%       { transform: translateY(-14px) rotate(var(--r)); }
+              }
+            `}</style>
+            <div className="relative w-[400px] h-[375px]">
+              {gradedCards.slice(0, 6).map((card, i) => {
+                const cfg = [
+                  { top: 0,   left: 0,   r: '-5deg', delay: '0s',    dur: '3.2s', z: 3 },
+                  { top: 0,   left: 138, r: '1deg',  delay: '0.5s',  dur: '2.9s', z: 5 },
+                  { top: 0,   left: 272, r: '6deg',  delay: '1.0s',  dur: '3.4s', z: 3 },
+                  { top: 193, left: 16,  r: '4deg',  delay: '0.3s',  dur: '3.1s', z: 2 },
+                  { top: 193, left: 150, r: '-3deg', delay: '0.8s',  dur: '2.8s', z: 4 },
+                  { top: 193, left: 280, r: '-6deg', delay: '1.3s',  dur: '3.5s', z: 2 },
+                ][i]
+                return (
+                  <div
+                    key={card.id}
+                    className="absolute w-[128px] h-[179px] rounded-xl overflow-hidden border-2 border-yellow/30"
+                    style={{
+                      top: cfg.top, left: cfg.left, zIndex: cfg.z,
+                      '--r': cfg.r,
+                      animation: `float ${cfg.dur} ease-in-out ${cfg.delay} infinite`,
+                      boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,200,0,0.1)',
+                    } as React.CSSProperties}
+                  >
+                    {card.image_url ? (
+                      <img src={card.image_url} alt={card.card_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-navy-light to-navy-dark flex flex-col items-center justify-center gap-2 p-2">
+                        <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
+                          <rect x="4" y="6" width="28" height="32" rx="4" fill="rgba(245,200,0,0.12)" />
+                          <rect x="8" y="10" width="20" height="14" rx="2" fill="rgba(245,200,0,0.18)" />
+                        </svg>
+                        <span className="font-condensed font-bold text-[0.45rem] tracking-wide uppercase text-white/40 text-center">{card.card_name}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
