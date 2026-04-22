@@ -23,10 +23,6 @@
   90%  { filter: brightness(1); }
 }
 
-.carousel-3d:hover,
-.carousel-3d:hover .carousel-card {
-  animation-play-state: paused !important;
-}
 
 @layer components {
   .btn-primary {
