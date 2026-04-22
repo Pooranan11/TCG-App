@@ -35,7 +35,7 @@ async def send_email(to: str, subject: str, html: str) -> None:
 
 
 async def send_verification_email(to: str, token: str) -> None:
-    link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+    link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token}"
     html = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
       <h2 style="color:#1a2744;margin-bottom:8px">Vérifiez votre adresse email</h2>
@@ -58,7 +58,7 @@ async def send_verification_email(to: str, token: str) -> None:
 
 
 async def send_reset_password_email(to: str, token: str) -> None:
-    link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token}"
     html = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
       <h2 style="color:#1a2744;margin-bottom:8px">Réinitialisation du mot de passe</h2>
