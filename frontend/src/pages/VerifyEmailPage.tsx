@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { verifyEmail } from '../api/auth'
 import AuthLayout from '../components/AuthLayout'
 
@@ -32,46 +32,28 @@ export default function VerifyEmailPage() {
 
         {state === 'success' && (
           <>
-            <div className="text-4xl mb-4">✅</div>
-            <h1 className="font-condensed font-black text-xl uppercase tracking-wide text-white mb-3">
-              Email vérifié !
+            <div className="text-5xl mb-5">✅</div>
+            <h1 className="font-condensed font-black text-2xl uppercase tracking-wide text-white mb-3">
+              Vous êtes authentifié !
             </h1>
-            <p className="text-white/60 text-sm mb-6">
-              Votre compte est activé. Vous pouvez maintenant vous connecter.
+            <p className="text-white/60 text-sm">
+              Votre adresse email est vérifiée.<br />
+              Vous pouvez fermer cette page.
             </p>
-            <Link
-              to="/login"
-              className="inline-block font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy px-8 py-3 hover:bg-yellow-light transition-colors"
-            >
-              Se connecter
-            </Link>
           </>
         )}
 
         {state === 'error' && (
           <>
-            <div className="text-4xl mb-4">❌</div>
-            <h1 className="font-condensed font-black text-xl uppercase tracking-wide text-white mb-3">
+            <div className="text-5xl mb-5">❌</div>
+            <h1 className="font-condensed font-black text-2xl uppercase tracking-wide text-white mb-3">
               Lien invalide
             </h1>
-            <p className="text-white/60 text-sm mb-6">
+            <p className="text-white/60 text-sm">
               Ce lien de vérification est invalide ou a expiré (24h).
-              <br />Inscrivez-vous à nouveau pour recevoir un nouvel email.
             </p>
-            <Link
-              to="/register"
-              className="inline-block font-condensed font-black text-[0.85rem] tracking-[0.12em] uppercase bg-yellow text-navy px-8 py-3 hover:bg-yellow-light transition-colors"
-            >
-              S'inscrire
-            </Link>
           </>
         )}
-      </div>
-
-      <div className="text-center mt-4">
-        <Link to="/" className="text-white/30 text-[0.75rem] hover:text-white/60 transition-colors">
-          Retour au site
-        </Link>
       </div>
     </AuthLayout>
   )
