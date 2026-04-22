@@ -12,9 +12,17 @@
   }
 }
 
-@keyframes rotating {
-  from { transform: perspective(1000px) rotateX(-20deg) rotateY(0turn); }
-  to   { transform: perspective(1000px) rotateX(-20deg) rotateY(1turn); }
+@keyframes carousel-rotate {
+  0%   { transform: perspective(1000px) rotateX(-22deg) rotateY(0deg); }
+  25%  { transform: perspective(1000px) rotateX(-15deg) rotateY(90deg); }
+  50%  { transform: perspective(1000px) rotateX(-22deg) rotateY(180deg); }
+  75%  { transform: perspective(1000px) rotateX(-15deg) rotateY(270deg); }
+  100% { transform: perspective(1000px) rotateX(-22deg) rotateY(360deg); }
+}
+
+@keyframes card-breathe {
+  0%, 100% { transform: scale(1);    filter: brightness(0.85); }
+  50%       { transform: scale(1.06); filter: brightness(1.12); }
 }
 
 @layer components {
