@@ -32,7 +32,12 @@ export default function VerifyEmailPage() {
 
         {state === 'success' && (
           <>
-            <div className="text-5xl mb-5">✅</div>
+            <div className="flex justify-center mb-5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <circle cx="12" cy="12" r="10" className="stroke-green-400" strokeWidth={1.5} />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 12l3 3 6-6" />
+              </svg>
+            </div>
             <h1 className="font-condensed font-black text-2xl uppercase tracking-wide text-white mb-3">
               Vous êtes authentifié !
             </h1>
